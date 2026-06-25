@@ -165,7 +165,11 @@ export default function Dashboard() {
             <div key={tx.id} className="list-item">
               <div>
                 <div style={{ fontWeight: 600, fontSize: 15 }}>{tx.description}</div>
-                <div style={{ color: '#888', fontSize: 12 }}>{tx.category} · {tx.date}</div>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginTop: 2 }}>
+                  <span style={{ color: '#888', fontSize: 12 }}>{tx.category} · {tx.date}</span>
+                  {tx.paymentMethod === 'banco' && <span style={{ fontSize: 10, fontWeight: 600, color: '#1565C0', background: '#E3F2FD', padding: '1px 5px', borderRadius: 3 }}>🏦 银行</span>}
+                  {tx.paymentMethod === 'efectivo' && <span style={{ fontSize: 10, fontWeight: 600, color: '#2E7D32', background: '#E8F5E9', padding: '1px 5px', borderRadius: 3 }}>💵 现金</span>}
+                </div>
               </div>
               <span className={tx.type === 'income' ? 'amount-income' : 'amount-expense'} style={{ fontSize: 16 }}>
                 {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
