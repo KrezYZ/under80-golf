@@ -1,0 +1,31 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Only signed-in users can read
+    // Only admins can write
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email in ['yuan_cristina@hotmail.com', 'yylou785@gmail.com'];
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    match /members/{id} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /events/{id} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /transactions/{id} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+  }
+}

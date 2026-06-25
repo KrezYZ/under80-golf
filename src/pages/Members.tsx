@@ -1,15 +1,19 @@
 import { useState, useEffect, useCallback } from 'react';
-import db, { type Member, formatDate } from '../db';
+import { getMembers, addMember, updateMember, deleteMember, type Member, formatDate } from '../db/firestore';
+import { useAuth } from '../hooks/useAuth';
 
 export default function Members() {
+  const { isAdmin } = useAuth();
   const [members, setMembers] = useState<Member[]>([]);
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Member | null>(null);
-  const [form, setForm] = useState<{ name: string; phone: string; email: string; status: 'active' | 'inactive'; notes: string }>({ name: '', phone: '', email: '', status: 'active', notes: '' });
+  const [form, setForm] = useState<{ name: string; phone: string; email: string; status: 'active' | 'inactive'; notes: string }>({
+    name: '', phone: '', email: '', status: 'active', notes: '',
+  });
 
   const load = useCallback(async () => {
-    const all = await db.members.toArray();
+    const all = await getMembers();
     setMembers(all.sort((a, b) => a.name.localeCompare(b.name, 'zh')));
   }, []);
 
@@ -23,17 +27,14 @@ export default function Members() {
   const active = filtered.filter(m => m.status === 'active');
   const inactive = filtered.filter(m => m.status === 'inactive');
 
-  // Lock body scroll when modal is open
   useEffect(() => {
-    if (showForm) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
+    if (showForm) { document.body.style.overflow = 'hidden'; }
+    else { document.body.style.overflow = ''; }
     return () => { document.body.style.overflow = ''; };
   }, [showForm]);
 
   const openNew = () => {
+    if (!isAdmin) return;
     setEditing(null);
     setForm({ name: '', phone: '', email: '', status: 'active', notes: '' });
     setShowForm(true);
@@ -46,19 +47,20 @@ export default function Members() {
   };
 
   const handleSave = async () => {
-    if (!form.name.trim()) return;
+    if (!isAdmin || !form.name.trim()) return;
     if (editing) {
-      await db.members.update(editing.id, { ...form, id: editing.id });
+      await updateMember(editing.id, { ...form, joinDate: editing.joinDate });
     } else {
-      await db.members.add({ ...form, id: 0, joinDate: new Date().toISOString().slice(0, 10) });
+      await addMember({ ...form, joinDate: new Date().toISOString().slice(0, 10) });
     }
     setShowForm(false);
     load();
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
+    if (!isAdmin) return;
     if (window.confirm('确定删除该会员？')) {
-      await db.members.delete(id);
+      await deleteMember(id);
       load();
     }
   };
@@ -76,17 +78,14 @@ export default function Members() {
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 600, fontSize: 16 }}>{m.name}</div>
                 <div style={{ fontSize: 13, color: '#888' }}>
-                  {m.phone}
-                  {m.email ? ` · ${m.email}` : ''}
+                  {m.phone}{m.email ? ` · ${m.email}` : ''}
                 </div>
               </div>
               <div style={{ textAlign: 'right' }}>
                 <span className={`tag ${m.status === 'active' ? 'tag-income' : 'tag-expense'}`}>
                   {m.status === 'active' ? '活跃' : '停用'}
                 </span>
-                <div style={{ fontSize: 11, color: '#bbb', marginTop: 4 }}>
-                  加入 {formatDate(m.joinDate)}
-                </div>
+                <div style={{ fontSize: 11, color: '#bbb', marginTop: 4 }}>加入 {formatDate(m.joinDate)}</div>
               </div>
             </div>
           </div>
@@ -103,21 +102,12 @@ export default function Members() {
       </div>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-        <input
-          className="input"
-          placeholder="🔍 搜索姓名/电话..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          style={{ flex: 1 }}
-        />
-        <button className="btn btn-primary btn-sm" onClick={openNew}>+ 添加</button>
+        <input className="input" placeholder="🔍 搜索姓名/电话..." value={search} onChange={e => setSearch(e.target.value)} style={{ flex: 1 }} />
+        {isAdmin && <button className="btn btn-primary btn-sm" onClick={openNew}>+ 添加</button>}
       </div>
 
       {filtered.length === 0 ? (
-        <div className="empty-state">
-          <div style={{ fontSize: 48 }}>👤</div>
-          <div>{search ? '没有匹配的会员' : '还没有会员，点击右上角添加'}</div>
-        </div>
+        <div className="empty-state"><div style={{ fontSize: 48 }}>👤</div><div>{search ? '没有匹配的会员' : '还没有会员'}</div></div>
       ) : (
         <>
           {renderMemberList(active, '活跃会员')}
@@ -125,46 +115,52 @@ export default function Members() {
         </>
       )}
 
-      {/* Modal Form */}
       {showForm && (
         <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setShowForm(false); }}>
           <div className="modal-content">
             <div className="modal-handle" />
             <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 16, color: '#1B5E20' }}>
-              {editing ? '编辑会员' : '添加会员'}
+              {editing ? (isAdmin ? '编辑会员' : '会员详情') : '添加会员'}
             </h2>
             <div className="form-group">
               <label className="label">姓名 *</label>
-              <input className="input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="会员姓名" />
+              <input className="input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="会员姓名" disabled={!isAdmin && !!editing} />
             </div>
             <div className="form-group">
               <label className="label">手机号码</label>
-              <input className="input" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="手机号" />
+              <input className="input" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="手机号" disabled={!isAdmin && !!editing} />
             </div>
             <div className="form-group">
               <label className="label">邮箱</label>
-              <input className="input" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="email@example.com" />
+              <input className="input" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="email@example.com" disabled={!isAdmin && !!editing} />
             </div>
             <div className="form-group">
               <label className="label">状态</label>
-              <select className="select" value={form.status} onChange={e => setForm({ ...form, status: e.target.value as 'active' })}>
+              <select className="select" value={form.status} onChange={e => setForm({ ...form, status: e.target.value as 'active' })} disabled={!isAdmin}>
                 <option value="active">活跃</option>
                 <option value="inactive">停用</option>
               </select>
             </div>
             <div className="form-group">
               <label className="label">备注</label>
-              <input className="input" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="备注信息" />
+              <input className="input" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="备注信息" disabled={!isAdmin && !!editing} />
             </div>
-            <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
-              <button className="btn btn-block btn-outline" onClick={() => setShowForm(false)} style={{ flex: 1 }}>取消</button>
-              <button className="btn btn-block btn-primary" onClick={handleSave} style={{ flex: 1 }}>保存</button>
-            </div>
-            {editing && (
-              <div style={{ marginTop: 10 }}>
-                <button className="btn btn-block btn-danger" onClick={() => { handleDelete(editing.id); setShowForm(false); }}>
-                  删除
-                </button>
+            {isAdmin && (
+              <>
+                <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
+                  <button className="btn btn-block btn-outline" onClick={() => setShowForm(false)} style={{ flex: 1 }}>取消</button>
+                  <button className="btn btn-block btn-primary" onClick={handleSave} style={{ flex: 1 }}>保存</button>
+                </div>
+                {editing && (
+                  <div style={{ marginTop: 10 }}>
+                    <button className="btn btn-block btn-danger" onClick={() => { handleDelete(editing.id); setShowForm(false); }}>删除</button>
+                  </div>
+                )}
+              </>
+            )}
+            {!isAdmin && editing && (
+              <div style={{ marginTop: 20 }}>
+                <button className="btn btn-block btn-outline" onClick={() => setShowForm(false)}>关闭</button>
               </div>
             )}
           </div>

@@ -1,5 +1,15 @@
 // Seed data from CUENTAS UNDER 80.xlsx and SOCIOS 2026.xlsx
-import type { Member, GolfEvent, Transaction } from './db';
+import type { Member, GolfEvent } from './db/firestore';
+
+// Raw seed transactions — eventId uses numeric index into seedEvents
+interface SeedTransaction {
+  eventId?: number;
+  type: 'income' | 'expense';
+  category: string;
+  amount: number;
+  description: string;
+  date: string;
+}
 
 export const seedEvents: Omit<GolfEvent, 'id'>[] = [
   { name: 'MENGFU CUP', date: '2025-09-21', location: '', status: 'completed', notes: '梦福杯 2025年9月' },
@@ -53,7 +63,7 @@ export const seedMembers: Omit<Member, 'id'>[] = [
   { name: "XIN LIU (XIN)", phone: "", email: "", joinDate: "2026-01-01", status: 'active', notes: "" },
 ];
 
-export const seedTransactions: Omit<Transaction, 'id'>[] = [
+export const seedTransactions: SeedTransaction[] = [
   { eventId: 0, type: 'income', category: '参赛费', amount: 2615, description: 'MENGFU CUP GREEN FEE', date: '2025-09-21' },
   { eventId: 0, type: 'expense', category: '餐饮', amount: 120, description: '包子', date: '2025-09-21' },
   { eventId: 0, type: 'expense', category: '其他支出', amount: 1000, description: 'FOTOGRAFO', date: '2025-09-21' },
