@@ -18,9 +18,9 @@ export default function Members() {
     setMembers(all);
   }, []);
 
-  // Strip sensitive fields for non-admin
-  const displayMembers = isAdmin ? members : members.map(m => ({
-    ...m,
+  // Strip sensitive fields for non-admin (remove fields entirely)
+  const displayMembers = isAdmin ? members : members.map(({ phone, email, joinDate, status, notes, ...rest }) => ({
+    ...rest,
     phone: '',
     email: '',
     joinDate: '',
@@ -126,7 +126,7 @@ export default function Members() {
     <div className="page">
       <div className="page-header">
         <h1 className="page-title">👥 会员管理</h1>
-        <span style={{ color: '#888', fontSize: 13 }}>共 {members.length} 人</span>
+        <span style={{ color: '#888', fontSize: 13 }}>共 {members.length} 人 v3</span>
       </div>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
