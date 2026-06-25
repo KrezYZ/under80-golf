@@ -20,7 +20,7 @@ export default function Transactions() {
   const [editing, setEditing] = useState<Transaction | null>(null);
   const [filter, setFilter] = useState<'all' | 'income' | 'expense'>('all');
   const [form, setForm] = useState<{ eventId: string; type: 'income' | 'expense'; category: string; amount: string; description: string; date: string }>({
-    eventId: '', type: 'expense', category: '', amount: '', description: '', date: new Date().toISOString().slice(0, 10),
+    eventId: '', type: 'expense', category: '', amount: '', description: '', date: new Date().toISOString().slice(0, 10), paymentMethod: '',
   });
 
   const load = useCallback(async () => {
@@ -47,13 +47,13 @@ export default function Transactions() {
   const openNew = (type: 'income' | 'expense' = 'expense') => {
     if (!isAdmin) return;
     setEditing(null);
-    setForm({ eventId: '', type, category: type === 'income' ? INCOME_CATEGORIES[0] : EXPENSE_CATEGORIES[0], amount: '', description: '', date: new Date().toISOString().slice(0, 10) });
+    setForm({ eventId: '', type, category: type === 'income' ? INCOME_CATEGORIES[0] : EXPENSE_CATEGORIES[0], amount: '', description: '', date: new Date().toISOString().slice(0, 10), paymentMethod: '' });
     setShowForm(true);
   };
 
   const openEdit = (tx: Transaction) => {
     setEditing(tx);
-    setForm({ eventId: tx.eventId || '', type: tx.type, category: tx.category, amount: String(tx.amount), description: tx.description, date: tx.date });
+    setForm({ eventId: tx.eventId || '', type: tx.type, category: tx.category, amount: String(tx.amount), description: tx.description, date: tx.date, paymentMethod: tx.paymentMethod || '' });
     setShowForm(true);
   };
 
@@ -66,6 +66,7 @@ export default function Transactions() {
       amount: Number(form.amount),
       description: form.description.trim(),
       date: form.date,
+      paymentMethod: form.paymentMethod || '',
     };
     if (editing) {
       await updateTransaction(editing.id, data);
