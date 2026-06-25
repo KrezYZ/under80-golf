@@ -26,7 +26,7 @@ export default function Transactions() {
 
   const load = useCallback(async () => {
     const [txs, evts] = await Promise.all([getTransactions(), getEvents()]);
-    txs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    txs.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     setTransactions(txs);
     setEvents(evts);
   }, []);
@@ -39,7 +39,7 @@ export default function Transactions() {
       const d = new Date(t.date);
       months.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
     });
-    return Array.from(months).sort();
+    return Array.from(months).sort().reverse();
   }, [transactions]);
 
   const filtered = useMemo(() => {
@@ -106,7 +106,7 @@ export default function Transactions() {
       if (!group || group.label !== label) { group = { label, items: [] }; groups.push(group); }
       group.items.push({ tx, balance: runningBalance[i] });
     });
-    return groups;
+    groups.reverse(); groups.forEach(g => g.items.reverse()); return groups;
   }, [filtered, runningBalance]);
 
   useEffect(() => {
