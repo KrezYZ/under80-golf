@@ -12,5 +12,5 @@ export function isSupabaseConfigured(): boolean {
 
 export const ADMIN_EMAILS = [
   'yuan_cristina@hotmail.com',
-  'yylou785@gmail.com',
+  'jibeimaoyi@163.com',
 ];
