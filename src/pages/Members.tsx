@@ -9,7 +9,7 @@ export default function Members() {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Member | null>(null);
   const [form, setForm] = useState({
-    name: '', phone: '', email: '', licencia: '', status: 'active' as 'active' | 'inactive', notes: '',
+    name: '', phone: '', email: '', licencia: '', genero: '', status: 'active' as 'active' | 'inactive', notes: '',
   });
 
   const load = useCallback(async () => {
@@ -39,13 +39,13 @@ export default function Members() {
   const openNew = () => {
     if (!isAdmin) return;
     setEditing(null);
-    setForm({ name: '', phone: '', email: '', licencia: '', status: 'active', notes: '' });
+    setForm({ name: '', phone: '', email: '', licencia: '', genero: '', status: 'active', notes: '' });
     setShowForm(true);
   };
 
   const openEdit = (m: Member) => {
     setEditing(m);
-    setForm({ name: m.name, phone: m.phone, email: m.email, licencia: m.licencia || '', status: m.status, notes: m.notes });
+    setForm({ name: m.name, phone: m.phone, email: m.email, licencia: m.licencia || '', genero: m.genero || '', status: m.status, notes: m.notes });
     setShowForm(true);
   };
 
@@ -79,7 +79,10 @@ export default function Members() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div className="member-avatar">{m.name[0]}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 600, fontSize: 15 }}>{m.name}</div>
+                <div style={{ fontWeight: 600, fontSize: 15 }}>
+                  {m.name}
+                  {m.genero && <span style={{ fontSize: 13, marginLeft: 4 }}>{m.genero === 'F' ? '♀️' : '♂️'}</span>}
+                </div>
                 {m.licencia && (
                   <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>
                     {m.licencia}
@@ -145,6 +148,16 @@ export default function Members() {
             <div className="form-group">
               <label className="label">Licencia</label>
               <input className="input" value={form.licencia} onChange={e => setForm({ ...form, licencia: e.target.value })} placeholder="执照号码" disabled={!isAdmin} />
+            </div>
+
+            {/* Gender — visible to all */}
+            <div className="form-group">
+              <label className="label">性别</label>
+              <select className="select" value={form.genero} onChange={e => setForm({ ...form, genero: e.target.value })} disabled={!isAdmin}>
+                <option value="">未指定</option>
+                <option value="M">♂️ 男</option>
+                <option value="F">♀️ 女</option>
+              </select>
             </div>
 
             {/* Admin-only fields */}

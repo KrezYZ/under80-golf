@@ -30,7 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const isAdmin = !!(user?.email && ADMIN_EMAILS.includes(user.email));
+  const isAdmin = !!(user?.email && ADMIN_EMAILS.some(e => e.toLowerCase() === user.email!.toLowerCase()));
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
