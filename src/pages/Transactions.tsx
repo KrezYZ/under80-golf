@@ -26,7 +26,7 @@ export default function Transactions() {
 
   const load = useCallback(async () => {
     const [txs, evts] = await Promise.all([getTransactions(), getEvents()]);
-    txs.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    txs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     setTransactions(txs);
     setEvents(evts);
   }, []);
