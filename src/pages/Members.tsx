@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getMembers, addMember, updateMember, deleteMember, type Member, formatDate } from '../db/firestore';
+import { getMembers, addMember, updateMember, deleteMember, type Member, formatDate } from '../db';
 import { useAuth } from '../hooks/useAuth';
 
 export default function Members() {

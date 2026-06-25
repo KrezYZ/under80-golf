@@ -1,5 +1,5 @@
 // Seed data from CUENTAS UNDER 80.xlsx and SOCIOS 2026.xlsx
-import type { Member, GolfEvent } from './db/firestore';
+import type { Member, GolfEvent } from './db';
 
 // Raw seed transactions — eventId uses numeric index into seedEvents
 interface SeedTransaction {

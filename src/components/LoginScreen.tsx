@@ -47,6 +47,8 @@ export default function LoginScreen() {
           UNDER 80 GOLF
         </h1>
         <p style={{ fontSize: 14, color: '#888' }}>俱乐部财务管理</p>
+        <p style={{ fontSize: 11, color: '#aaa', marginTop: 4 }}>输入任意邮箱+密码即可登录查看</p>
+        <p style={{ fontSize: 11, color: '#aaa' }}>管理员账号密码见群内公告</p>
       </div>
 
       <div className="card" style={{ width: '100%', maxWidth: 360 }}>

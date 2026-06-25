@@ -6,7 +6,7 @@ import {
   getTransactions, getActiveMemberCount,
   seedFirestore,
   EXPENSE_CATEGORIES,
-} from '../db/firestore';
+} from '../db';
 import { useAuth } from '../hooks/useAuth';
 import { exportToExcel } from '../utils/export';
 import { seedEvents, seedMembers, seedTransactions } from '../seed';

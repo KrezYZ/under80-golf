@@ -3,7 +3,7 @@ import {
   getTransactions, getEvents, getMembers,
   getTotalIncome, getTotalExpense, getBalance, getMonthLabel,
   INCOME_CATEGORIES, EXPENSE_CATEGORIES,
-} from '../db/firestore';
+} from '../db';
 
 export async function exportToExcel() {
   const [transactions, events, members] = await Promise.all([

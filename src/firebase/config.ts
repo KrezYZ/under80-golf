@@ -2,7 +2,6 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
-// Firebase config — populated from Firebase Console after project creation
 const firebaseConfig = {
   apiKey: 'AIzaSyD-PLACEHOLDER',
   authDomain: 'under80-golf.firebaseapp.com',
@@ -17,7 +16,10 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-// Admin email list — these users can add/edit/delete data
+export function isFirebaseConfigured(): boolean {
+  return !firebaseConfig.apiKey.includes('PLACEHOLDER');
+}
+
 export const ADMIN_EMAILS = [
   'yuan_cristina@hotmail.com',
   'yylou785@gmail.com',

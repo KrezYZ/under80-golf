@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getEvents, addEvent, updateEvent, deleteEvent, getTransactions, type GolfEvent, getEventBalance, formatCurrency, formatDate } from '../db/firestore';
+import { getEvents, addEvent, updateEvent, deleteEvent, getTransactions, type GolfEvent, getEventBalance, formatCurrency, formatDate } from '../db';
 import { useAuth } from '../hooks/useAuth';
 
 export default function Events() {

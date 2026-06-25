@@ -4,7 +4,7 @@ import {
   getEvents, type Transaction, type GolfEvent,
   getBalance, formatCurrency, formatDate,
   INCOME_CATEGORIES, EXPENSE_CATEGORIES,
-} from '../db/firestore';
+} from '../db';
 import { useAuth } from '../hooks/useAuth';
 
 function fmtShort(d: string) {
