@@ -38,6 +38,7 @@ function initTransactions(): Transaction[] {
     description: tx.description,
     date: tx.date,
     eventId: tx.eventId != null ? 'ev_' + tx.eventId : undefined,
+    paymentMethod: tx.paymentMethod || '',
   }));
   save(KEYS.transactions, txs);
   return txs;
@@ -103,7 +104,7 @@ export async function getTransactions(): Promise<Transaction[]> {
 
 export async function addTransaction(data: Omit<Transaction, 'id'>): Promise<Transaction> {
   const all = await getTransactions();
-  const item: Transaction = { id: 'tx_' + Date.now(), ...data };
+  const item: Transaction = { id: 'tx_' + Date.now(), ...data, paymentMethod: data.paymentMethod || '' };
   all.push(item);
   save(KEYS.transactions, all);
   return item;
