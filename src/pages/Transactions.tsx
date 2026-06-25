@@ -20,6 +20,7 @@ export default function Transactions() {
   const [editing, setEditing] = useState<Transaction | null>(null);
   const [filter, setFilter] = useState<'all' | 'income' | 'expense'>('all');
   const [monthFilter, setMonthFilter] = useState('all');
+  const [expandedMonths, setExpandedMonths] = useState<Set<string>>(new Set());
   const [form, setForm] = useState<{ eventId: string; type: 'income' | 'expense'; category: string; amount: string; description: string; date: string; paymentMethod: string }>({
     eventId: '', type: 'expense', category: '', amount: '', description: '', date: new Date().toISOString().slice(0, 10), paymentMethod: '',
   });
@@ -41,6 +42,13 @@ export default function Transactions() {
     });
     return Array.from(months).sort().reverse();
   }, [transactions]);
+
+  // Auto-expand most recent month on first load
+  useEffect(() => {
+    if (availableMonths.length > 0 && expandedMonths.size === 0) {
+      setExpandedMonths(new Set([availableMonths[0]]));
+    }
+  }, [availableMonths]);
 
   const filtered = useMemo(() => {
     let result = transactions;
@@ -169,10 +177,16 @@ export default function Transactions() {
           </div>
           {grouped.map((group) => (
             <div key={group.label}>
-              <div style={{ background: '#f5f7f5', padding: '6px 14px', fontSize: 12, fontWeight: 700, color: '#1B5E20', borderBottom: '1px solid #e0e6e0' }}>
-                📅 {group.label} ({group.items.length})
+              <div onClick={() => {
+                const next = new Set(expandedMonths);
+                if (next.has(group.label)) next.delete(group.label);
+                else next.add(group.label);
+                setExpandedMonths(next);
+              }} style={{ background: '#f5f7f5', padding: '6px 14px', fontSize: 12, fontWeight: 700, color: '#1B5E20', borderBottom: expandedMonths.has(group.label) ? '1px solid #e0e6e0' : 'none', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>📅 {group.label} ({group.items.length})</span>
+                <span style={{ color: '#888' }}>{expandedMonths.has(group.label) ? '▲' : '▼'}</span>
               </div>
-              {group.items.map(({ tx, balance }, idx) => {
+              {expandedMonths.has(group.label) && group.items.map(({ tx, balance }, idx) => {
                 const evName = getEventName(tx.eventId);
                 return (
                   <div key={tx.id} onClick={() => openEdit(tx)}
@@ -227,6 +241,16 @@ export default function Transactions() {
             <div className="form-group"><label className="label">分类 *</label><select className="select" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} disabled={!isAdmin && !!editing}>{categories.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
             <div className="form-group"><label className="label">描述 *</label><input className="input" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="例如：GREEN FEE 或 会员年费" disabled={!isAdmin && !!editing} /></div>
             <div className="form-group"><label className="label">日期</label><input className="input" type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} disabled={!isAdmin && !!editing} /></div>
+            {isAdmin && (
+              <div className="form-group">
+                <label className="label">付款方式</label>
+                <select className="select" value={form.paymentMethod} onChange={e => setForm({ ...form, paymentMethod: e.target.value })}>
+                  <option value="">未指定</option>
+                  <option value="efectivo">💵 现金</option>
+                  <option value="banco">🏦 银行</option>
+                </select>
+              </div>
+            )}
             <div className="form-group">
               <label className="label">关联比赛（可选）</label>
               <select className="select" value={form.eventId} onChange={e => setForm({ ...form, eventId: e.target.value })} disabled={!isAdmin && !!editing}>
