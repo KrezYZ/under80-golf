@@ -9,7 +9,7 @@ export default function Members() {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Member | null>(null);
   const [form, setForm] = useState({
-    name: '', phone: '', email: '', licencia: '', status: 'active' as const, notes: '',
+    name: '', phone: '', email: '', licencia: '', status: 'active' as 'active' | 'inactive', notes: '',
   });
 
   const load = useCallback(async () => {
