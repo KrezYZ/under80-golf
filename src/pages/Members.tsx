@@ -3,7 +3,8 @@ import { getMembers, addMember, updateMember, deleteMember, type Member, formatD
 import { useAuth } from '../hooks/useAuth';
 
 export default function Members() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
+  console.log('Members page - isAdmin:', isAdmin, 'email:', user?.email);
   const [members, setMembers] = useState<Member[]>([]);
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
