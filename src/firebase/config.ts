@@ -1,23 +1,13 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { createClient } from '@supabase/supabase-js';
 
-const firebaseConfig = {
-  apiKey: 'AIzaSyD-PLACEHOLDER',
-  authDomain: 'under80-golf.firebaseapp.com',
-  projectId: 'under80-golf',
-  storageBucket: 'under80-golf.firebasestorage.app',
-  messagingSenderId: '000000000000',
-  appId: '1:000000000000:web:xxxxxxxxxxxxxxxxxxxx',
-};
+const supabaseUrl = 'https://bykfoersygrhtnlueibu.supabase.co';
+const supabaseAnonKey = 'sb_publishable_kHByOAmw6bvIdRQYLsbgWQ_HYtABZXq';
 
-const app = initializeApp(firebaseConfig);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-
-export function isFirebaseConfigured(): boolean {
-  return !firebaseConfig.apiKey.includes('PLACEHOLDER');
+// Detect if Supabase is configured with a real key
+export function isSupabaseConfigured(): boolean {
+  return supabaseAnonKey.length > 20 && !supabaseAnonKey.includes('PLACEHOLDER');
 }
 
 export const ADMIN_EMAILS = [

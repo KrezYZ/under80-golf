@@ -21,16 +21,17 @@ export default function LoginScreen() {
         await signIn(email.trim(), password);
       }
     } catch (err: any) {
-      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+      const msg = err?.message || '';
+      if (msg.includes('Invalid login credentials') || msg.includes('Invalid Login Credentials')) {
         setError('邮箱或密码错误');
-      } else if (err.code === 'auth/email-already-in-use') {
+      } else if (msg.includes('already registered') || msg.includes('already been registered')) {
         setError('该邮箱已注册，请直接登录');
-      } else if (err.code === 'auth/weak-password') {
+      } else if (msg.includes('password') && msg.includes('6')) {
         setError('密码至少需要6个字符');
-      } else if (err.code === 'auth/invalid-email') {
+      } else if (msg.includes('Email') || msg.includes('email')) {
         setError('邮箱格式不正确');
       } else {
-        setError(err.message || '登录失败');
+        setError(msg || '登录失败');
       }
     }
     setBusy(false);

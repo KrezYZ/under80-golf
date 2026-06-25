@@ -1,7 +1,7 @@
 // Local storage data layer — used when Firebase is not yet configured
 // Mirrors the same API as firestore.ts
 
-import type { Member, GolfEvent, Transaction } from './firestore';
+import type { Member, GolfEvent, Transaction } from './supabase';
 import { seedEvents, seedMembers, seedTransactions } from '../seed';
 
 const KEYS = { members: 'under80_members', events: 'under80_events', transactions: 'under80_tx' };

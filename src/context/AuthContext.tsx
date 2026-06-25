@@ -1,12 +1,6 @@
 import { createContext, useEffect, useState, type ReactNode } from 'react';
-import {
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut as firebaseSignOut,
-  type User,
-} from 'firebase/auth';
-import { auth, ADMIN_EMAILS, isFirebaseConfigured } from '../firebase/config';
+import { supabase, ADMIN_EMAILS } from '../firebase/config';
+import type { User } from '@supabase/supabase-js';
 
 export interface AuthContextType {
   user: User | null;
@@ -19,96 +13,41 @@ export interface AuthContextType {
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
-// ---- Local auth (when Firebase not configured) ----
-
-function useLocalAuth(): AuthContextType {
-  const [localUser, setLocalUser] = useState<User | null>(() => {
-    const stored = sessionStorage.getItem('under80_user');
-    return stored ? (JSON.parse(stored) as User) : null;
-  });
-
-  const isAdmin = !!(localUser?.email && ADMIN_EMAILS.includes(localUser.email));
-
-  const localSignIn = async (email: string, password: string) => {
-    // Simple PIN auth for admin, guest for anyone
-    if (ADMIN_EMAILS.includes(email) && password === 'admin123') {
-      const mockUser = { email, uid: email, emailVerified: true, displayName: email.split('@')[0], photoURL: null } as unknown as User;
-      sessionStorage.setItem('under80_user', JSON.stringify(mockUser));
-      setLocalUser(mockUser);
-      return;
-    }
-    // Any email + password >= 3 chars = guest
-    if (password.length >= 3) {
-      const mockUser = { email, uid: email, emailVerified: true, displayName: email.split('@')[0], photoURL: null } as unknown as User;
-      sessionStorage.setItem('under80_user', JSON.stringify(mockUser));
-      setLocalUser(mockUser);
-      return;
-    }
-    throw new Error('密码至少需要3个字符');
-  };
-
-  const localSignUp = async (email: string, password: string) => {
-    if (password.length < 3) throw new Error('密码至少需要3个字符');
-    const mockUser = { email, uid: email, emailVerified: true, displayName: email.split('@')[0], photoURL: null } as unknown as User;
-    sessionStorage.setItem('under80_user', JSON.stringify(mockUser));
-    setLocalUser(mockUser);
-  };
-
-  const localSignOut = async () => {
-    sessionStorage.removeItem('under80_user');
-    setLocalUser(null);
-  };
-
-  return {
-    user: localUser,
-    loading: false,
-    isAdmin,
-    signIn: localSignIn,
-    signUp: localSignUp,
-    signOut: localSignOut,
-  };
-}
-
-// ---- Firebase auth (when configured) ----
-
-function useFirebaseAuth(): AuthContextType {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      setUser(u);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
       setLoading(false);
     });
-    return unsub;
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const isAdmin = !!(user?.email && ADMIN_EMAILS.includes(user.email));
 
   const signIn = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
   };
 
   const signUp = async (email: string, password: string) => {
-    await createUserWithEmailAndPassword(auth, email, password);
+    const { error } = await supabase.auth.signUp({ email, password });
+    if (error) throw error;
   };
 
   const signOut = async () => {
-    await firebaseSignOut(auth);
+    await supabase.auth.signOut();
   };
 
-  return { user, loading, isAdmin, signIn, signUp, signOut };
-}
-
-// ---- Provider ----
-
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const firebaseAuth = useFirebaseAuth();
-  const localAuth = useLocalAuth();
-  const value = isFirebaseConfigured() ? firebaseAuth : localAuth;
-
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ user, loading, isAdmin, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );

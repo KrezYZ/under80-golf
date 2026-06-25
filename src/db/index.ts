@@ -1,12 +1,12 @@
-// Database layer — auto-selects Firebase or local storage
-import { isFirebaseConfigured } from '../firebase/config';
-import * as firestore from './firestore';
+// Database layer — uses Supabase
+import { isSupabaseConfigured } from '../firebase/config';
+import * as supabase from './supabase';
 import * as localStore from './localStore';
 
-const store = isFirebaseConfigured() ? firestore : localStore;
+const store = isSupabaseConfigured() ? supabase : localStore;
 
 // Types
-export type { Member, GolfEvent, Transaction } from './firestore';
+export type { Member, GolfEvent, Transaction } from './supabase';
 
 // CRUD
 export const getMembers = store.getMembers;
@@ -32,7 +32,4 @@ export {
   getTotalIncome, getTotalExpense, getBalance, getEventBalance,
   getTransactionsByMonth, getCurrentMonthTransactions,
   formatCurrency, formatDate, getMonthLabel, getRunningBalance,
-} from './firestore';
-
-// Seed (only when using local store)
-export { seedFirestore } from './firestore';
+} from './supabase';

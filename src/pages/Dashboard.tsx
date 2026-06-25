@@ -4,12 +4,9 @@ import {
   getTotalIncome, getTotalExpense, getBalance,
   getCurrentMonthTransactions, formatCurrency, getMonthLabel,
   getTransactions, getActiveMemberCount,
-  seedFirestore,
   EXPENSE_CATEGORIES,
 } from '../db';
-import { useAuth } from '../hooks/useAuth';
 import { exportToExcel } from '../utils/export';
-import { seedEvents, seedMembers, seedTransactions } from '../seed';
 
 interface MonthlyStats {
   label: string;
@@ -18,7 +15,6 @@ interface MonthlyStats {
 }
 
 export default function Dashboard() {
-  const { isAdmin } = useAuth();
   const [balance, setBalance] = useState(0);
   const [monthIncome, setMonthIncome] = useState(0);
   const [monthExpense, setMonthExpense] = useState(0);
@@ -28,12 +24,9 @@ export default function Dashboard() {
   const [recentTx, setRecentTx] = useState<Transaction[]>([]);
   const [monthlyStats, setMonthlyStats] = useState<MonthlyStats[]>([]);
   const [categoryBreakdown, setCategoryBreakdown] = useState<{ name: string; amount: number }[]>([]);
-  const [seeding, setSeeding] = useState(false);
-  const [isSeeded, setIsSeeded] = useState(false);
 
   const refresh = useCallback(async () => {
     const [txs, count] = await Promise.all([getTransactions(), getActiveMemberCount()]);
-    if (txs.length > 0) setIsSeeded(true);
 
     setBalance(getBalance(txs));
     setTotalIncome(getTotalIncome(txs));
@@ -73,18 +66,6 @@ export default function Dashboard() {
 
   useEffect(() => { refresh(); }, [refresh]);
 
-  const handleSeed = async () => {
-    if (!isAdmin || !window.confirm('确定导入种子数据？这将覆盖现有数据！')) return;
-    setSeeding(true);
-    try {
-      await seedFirestore(seedEvents as any, seedMembers as any, seedTransactions);
-      await refresh();
-    } catch (e: any) {
-      alert('导入失败: ' + e.message);
-    }
-    setSeeding(false);
-  };
-
   const maxMonthly = Math.max(...monthlyStats.map(s => Math.max(s.income, s.expense)), 1);
 
   return (
@@ -92,11 +73,6 @@ export default function Dashboard() {
       <div className="page-header">
         <h1 className="page-title">UNDER 80 GOLF 🏌️‍♀️</h1>
         <div style={{ display: 'flex', gap: 8 }}>
-          {isAdmin && !isSeeded && (
-            <button className="btn btn-outline btn-sm" onClick={handleSeed} disabled={seeding} style={{ color: '#E65100', borderColor: '#E65100' }}>
-              {seeding ? '导入中...' : '📥 导入数据'}
-            </button>
-          )}
           <button className="btn btn-outline btn-sm" onClick={() => exportToExcel()}>📤 导出</button>
         </div>
       </div>

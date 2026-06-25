@@ -84,7 +84,7 @@ export default function Transactions() {
     }
   };
 
-  const getEventName = (eventId?: string) => {
+  const getEventName = (eventId?: string | null) => {
     if (!eventId) return null;
     const ev = events.find(e => e.id === eventId);
     return ev ? ev.name : null;
