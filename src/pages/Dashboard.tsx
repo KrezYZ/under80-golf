@@ -16,6 +16,8 @@ interface MonthlyStats {
 
 export default function Dashboard() {
   const [balance, setBalance] = useState(0);
+  const [cashBalance, setCashBalance] = useState(0);
+  const [bankBalance, setBankBalance] = useState(0);
   const [monthIncome, setMonthIncome] = useState(0);
   const [monthExpense, setMonthExpense] = useState(0);
   const [totalIncome, setTotalIncome] = useState(0);
@@ -31,6 +33,12 @@ export default function Dashboard() {
     setBalance(getBalance(txs));
     setTotalIncome(getTotalIncome(txs));
     setTotalExpense(getTotalExpense(txs));
+
+    // Cash & bank balances
+    const cashTxs = txs.filter(t => t.paymentMethod === 'efectivo' || !t.paymentMethod);
+    const bankTxs = txs.filter(t => t.paymentMethod === 'banco');
+    setCashBalance(getBalance(cashTxs));
+    setBankBalance(getBalance(bankTxs));
     setMemberCount(count);
 
     const monthTxs = getCurrentMonthTransactions(txs);
@@ -88,12 +96,12 @@ export default function Dashboard() {
 
       <div className="stat-grid">
         <div className="stat-card">
-          <div className="stat-label">📈 本月收入</div>
-          <div className="stat-value green">{formatCurrency(monthIncome)}</div>
+          <div className="stat-label">💵 现金余额</div>
+          <div className={`stat-value ${cashBalance >= 0 ? 'green' : 'red'}`}>{formatCurrency(cashBalance)}</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">📉 本月支出</div>
-          <div className="stat-value red">{formatCurrency(monthExpense)}</div>
+          <div className="stat-label">🏦 银行余额</div>
+          <div className={`stat-value ${bankBalance >= 0 ? 'green' : 'red'}`}>{formatCurrency(bankBalance)}</div>
         </div>
         <div className="stat-card">
           <div className="stat-label">👥 活跃会员</div>

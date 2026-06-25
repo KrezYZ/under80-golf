@@ -32,6 +32,7 @@ export interface Transaction {
   amount: number;
   description: string;
   date: string;
+  paymentMethod: string;
 }
 
 // ---- Categories ----
