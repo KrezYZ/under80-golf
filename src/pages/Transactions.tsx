@@ -19,6 +19,7 @@ export default function Transactions() {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Transaction | null>(null);
   const [filter, setFilter] = useState<'all' | 'income' | 'expense'>('all');
+  const [monthFilter, setMonthFilter] = useState('all');
   const [form, setForm] = useState<{ eventId: string; type: 'income' | 'expense'; category: string; amount: string; description: string; date: string; paymentMethod: string }>({
     eventId: '', type: 'expense', category: '', amount: '', description: '', date: new Date().toISOString().slice(0, 10), paymentMethod: '',
   });
@@ -32,10 +33,27 @@ export default function Transactions() {
 
   useEffect(() => { load(); }, [load]);
 
+  // Available months from data
+  const availableMonths = useMemo(() => {
+    const months = new Set<string>();
+    transactions.forEach(t => {
+      const d = new Date(t.date);
+      months.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);
+    });
+    return Array.from(months).sort();
+  }, [transactions]);
+
   const filtered = useMemo(() => {
-    if (filter === 'all') return transactions;
-    return transactions.filter(t => t.type === filter);
-  }, [transactions, filter]);
+    let result = transactions;
+    if (filter !== 'all') result = result.filter(t => t.type === filter);
+    if (monthFilter !== 'all') {
+      result = result.filter(t => {
+        const d = new Date(t.date);
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}` === monthFilter;
+      });
+    }
+    return result;
+  }, [transactions, filter, monthFilter]);
 
   const runningBalance = useMemo(() => {
     let bal = 0;
@@ -134,6 +152,17 @@ export default function Transactions() {
             {f === 'all' ? '全部' : f === 'income' ? '📈 收入' : '📉 支出'}
           </button>
         ))}
+      </div>
+
+      <div style={{ marginBottom: 12 }}>
+        <select className="select" value={monthFilter} onChange={e => setMonthFilter(e.target.value)}
+          style={{ fontSize: 13, padding: '6px 12px', width: 'auto' }}>
+          <option value="all">📅 全部月份</option>
+          {availableMonths.map(m => {
+            const [y, mo] = m.split('-');
+            return <option key={m} value={m}>{y}年{parseInt(mo)}月</option>;
+          })}
+        </select>
       </div>
 
       {filtered.length === 0 ? (
