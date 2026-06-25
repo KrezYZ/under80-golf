@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { getEvents, addEvent, updateEvent, deleteEvent, getTransactions, type GolfEvent, type Transaction, getTotalIncome, getTotalExpense, formatCurrency, formatDate } from '../db';
+import { getEvents, addEvent, updateEvent, deleteEvent, getTransactions, type GolfEvent, type Transaction, getTotalIncome, getTotalExpense, autoBackup, formatCurrency, formatDate } from '../db';
 import { useAuth } from '../hooks/useAuth';
 
 function fmtShort(d: string) { const p = d.split('-'); return `${p[2]}/${p[1]}/${p[0].slice(2)}`; }
@@ -76,12 +76,12 @@ export default function Events() {
     const data = { ...form, attendees: editing?.attendees || '[]' };
     if (editing) { await updateEvent(editing.id, data); }
     else { await addEvent(data); }
-    setShowForm(false); load();
+    setShowForm(false); load(); autoBackup('编辑/添加比赛');
   };
 
   const handleDelete = async (id: string) => {
     if (!isAdmin) return;
-    if (window.confirm('确定删除该比赛？关联的交易记录不会被删除。')) { await deleteEvent(id); load(); }
+    if (window.confirm('确定删除该比赛？关联的交易记录不会被删除。')) { await deleteEvent(id); load(); autoBackup('删除比赛'); }
   };
 
   return (

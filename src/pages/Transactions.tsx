@@ -3,6 +3,7 @@ import {
   getTransactions, addTransaction, updateTransaction, deleteTransaction,
   getEvents, type Transaction, type GolfEvent,
   getBalance, formatCurrency, formatDate,
+  autoBackup,
   INCOME_CATEGORIES, EXPENSE_CATEGORIES,
 } from '../db';
 import { useAuth } from '../hooks/useAuth';
@@ -89,12 +90,12 @@ export default function Transactions() {
     const data = { eventId: form.eventId || undefined, type: form.type, category: form.category, amount: Number(form.amount), description: form.description.trim(), date: form.date, paymentMethod: form.paymentMethod || '' };
     if (editing) { await updateTransaction(editing.id, data); }
     else { await addTransaction(data); }
-    setShowForm(false); load();
+    setShowForm(false); load(); autoBackup('编辑/添加交易');
   };
 
   const handleDelete = async (id: string) => {
     if (!isAdmin) return;
-    if (window.confirm('确定删除该记录？')) { await deleteTransaction(id); load(); }
+    if (window.confirm('确定删除该记录？')) { await deleteTransaction(id); load(); autoBackup('删除交易'); }
   };
 
   const getEventName = (eventId?: string | null) => {

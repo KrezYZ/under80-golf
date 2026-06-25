@@ -165,3 +165,43 @@ export function getRunningBalance(transactions: Transaction[]): number {
   const sorted = [...transactions].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   return getBalance(sorted);
 }
+
+// ---- Auto-backup ----
+
+let backupTimer: any = null;
+export async function autoBackup(label: string = 'auto') {
+  clearTimeout(backupTimer);
+  backupTimer = setTimeout(async () => {
+    try {
+      const [members, events, transactions] = await Promise.all([
+        getMembers(), getEvents(), getTransactions(),
+      ]);
+      await supabase.from('backups').insert({
+        label,
+        data: { members, events, transactions },
+      });
+    } catch (e) {
+      console.error('Backup failed:', e);
+    }
+  }, 2000); // Debounce 2s
+}
+
+export async function getBackups(): Promise<{ id: string; created_at: string; label: string }[]> {
+  const { data } = await supabase.from('backups').select('id,created_at,label').order('created_at', { ascending: false }).limit(20);
+  return data || [];
+}
+
+export async function restoreBackup(id: string): Promise<void> {
+  const { data } = await supabase.from('backups').select('data').eq('id', id).single();
+  if (!data?.data) throw new Error('Backup not found');
+  const { members, events, transactions } = data.data;
+
+  // Clear and restore
+  await supabase.from('transactions').delete().neq('id', '0');
+  await supabase.from('members').delete().neq('id', '0');
+  await supabase.from('events').delete().neq('id', '0');
+
+  for (const e of events) await supabase.from('events').insert(e);
+  for (const m of members) await supabase.from('members').insert(m);
+  for (const t of transactions) await supabase.from('transactions').insert(t);
+}

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getMembers, addMember, updateMember, deleteMember, type Member, formatDate } from '../db';
+import { getMembers, addMember, updateMember, deleteMember, type Member, autoBackup, formatDate } from '../db';
 import { useAuth } from '../hooks/useAuth';
 
 export default function Members() {
@@ -55,14 +55,14 @@ export default function Members() {
       await addMember({ ...form, joinDate: new Date().toISOString().slice(0, 10) });
     }
     setShowForm(false);
-    load();
+    load(); autoBackup('编辑/添加会员');
   };
 
   const handleDelete = async (id: string) => {
     if (!isAdmin) return;
     if (window.confirm('确定删除该会员？')) {
       await deleteMember(id);
-      load();
+      load(); autoBackup('删除会员');
     }
   };
 

@@ -33,3 +33,6 @@ export {
   getTransactionsByMonth, getCurrentMonthTransactions,
   formatCurrency, formatDate, getMonthLabel, getRunningBalance,
 } from './supabase';
+
+// Backup
+export { autoBackup, getBackups, restoreBackup } from './supabase';
