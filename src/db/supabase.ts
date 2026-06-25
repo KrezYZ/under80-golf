@@ -7,6 +7,7 @@ export interface Member {
   name: string;
   phone: string;
   email: string;
+  licencia: string;
   joinDate: string;
   status: 'active' | 'inactive';
   notes: string;

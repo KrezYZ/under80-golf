@@ -10,7 +10,12 @@ function load<T>(key: string, seed: any[], idPrefix: string): T[] {
   const raw = localStorage.getItem(key);
   if (raw) return JSON.parse(raw);
   // First time: seed data with generated IDs
-  const seeded = seed.map((item: any, i: number) => ({ id: idPrefix + i, ...item }));
+  const seeded = seed.map((item: any, i: number) => {
+    const obj = { id: idPrefix + i, ...item };
+    // Ensure licencia field exists (for backward compat)
+    if (obj.licencia === undefined) obj.licencia = '';
+    return obj;
+  });
   save(key, seeded);
   return seeded as T[];
 }
