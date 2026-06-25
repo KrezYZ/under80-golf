@@ -122,7 +122,7 @@ export default function Dashboard() {
                   background: '#f44336', borderRadius: '4px 4px 0 0', minHeight: 2,
                 }} />
               </div>
-              <span style={{ fontSize: 9, color: '#888', marginTop: 4, whiteSpace: 'nowrap' }}>{s.label.slice(0, 3)}</span>
+              <span style={{ fontSize: 9, color: '#888', marginTop: 4, whiteSpace: 'nowrap' }}>{s.label.replace(/^\d+年/, '')}</span>
             </div>
           ))}
         </div>
