@@ -21,15 +21,15 @@ export default function LoginScreen() {
         await signIn(email.trim(), password);
       }
     } catch (err: any) {
-      const msg = err?.message || '';
-      if (msg.includes('Invalid login credentials') || msg.includes('Invalid Login Credentials')) {
+      const msg = err?.message || err?.msg || '';
+      if (msg.includes('Invalid login') || msg.includes('Invalid Login')) {
         setError('邮箱或密码错误');
       } else if (msg.includes('already registered') || msg.includes('already been registered')) {
         setError('该邮箱已注册，请直接登录');
       } else if (msg.includes('password') && msg.includes('6')) {
         setError('密码至少需要6个字符');
-      } else if (msg.includes('Email') || msg.includes('email')) {
-        setError('邮箱格式不正确');
+      } else if (msg.includes('rate limit') || msg.includes('Rate')) {
+        setError('注册太频繁，请稍后再试');
       } else {
         setError(msg || '登录失败');
       }
