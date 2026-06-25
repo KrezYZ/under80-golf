@@ -12,8 +12,10 @@ function load<T>(key: string, seed: any[], idPrefix: string): T[] {
   // First time: seed data with generated IDs
   const seeded = seed.map((item: any, i: number) => {
     const obj = { id: idPrefix + i, ...item };
-    // Ensure licencia field exists (for backward compat)
+    // Ensure new fields exist for backward compat
     if (obj.licencia === undefined) obj.licencia = '';
+    if (obj.time === undefined) obj.time = '';
+    if (obj.attendees === undefined) obj.attendees = '[]';
     return obj;
   });
   save(key, seeded);

@@ -18,9 +18,11 @@ export interface GolfEvent {
   id: string;
   name: string;
   date: string;
+  time: string;
   location: string;
   status: 'upcoming' | 'completed' | 'cancelled';
   notes: string;
+  attendees: string;
 }
 
 export interface Transaction {
