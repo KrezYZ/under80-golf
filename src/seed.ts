@@ -12,11 +12,11 @@ interface SeedTransaction {
 }
 
 export const seedEvents: Omit<GolfEvent, 'id'>[] = [
-  { name: 'MENGFU CUP', date: '2025-09-21', location: '', status: 'completed', notes: '梦福杯 2025年9月' },
-  { name: '年终赛', date: '2025-11-29', location: 'SANTANDER', status: 'completed', notes: '年终赛 GREEN FEE SANTANDER' },
-  { name: 'GOLF RETAMARES', date: '2026-03-20', location: 'RETAMARES', status: 'completed', notes: '2026年3月' },
-  { name: 'GOLF LA DEHESA', date: '2026-04-10', location: 'LA DEHESA', status: 'completed', notes: '2026年4月' },
-  { name: 'GOLF SANTANDER', date: '2026-05-10', location: 'SANTANDER', status: 'completed', notes: '2026年5月' },
+  { name: 'MENGFU CUP', date: '2025-09-21', time: '', location: '', status: 'completed', notes: '梦福杯 2025年9月', attendees: '[]' },
+  { name: '年终赛', date: '2025-11-29', time: '', location: 'SANTANDER', status: 'completed', notes: '年终赛 GREEN FEE SANTANDER', attendees: '[]' },
+  { name: 'GOLF RETAMARES', date: '2026-03-20', time: '', location: 'RETAMARES', status: 'completed', notes: '2026年3月', attendees: '[]' },
+  { name: 'GOLF LA DEHESA', date: '2026-04-10', time: '', location: 'LA DEHESA', status: 'completed', notes: '2026年4月', attendees: '[]' },
+  { name: 'GOLF SANTANDER', date: '2026-05-10', time: '', location: 'SANTANDER', status: 'completed', notes: '2026年5月', attendees: '[]' },
 ];
 
 export const seedMembers: Omit<Member, 'id'>[] = [
