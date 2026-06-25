@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getEvents, addEvent, updateEvent, deleteEvent, getTransactions, type GolfEvent, getTotalIncome, getTotalExpense, formatCurrency, formatDate } from '../db';
+import { getEvents, addEvent, updateEvent, deleteEvent, getTransactions, type GolfEvent, type Transaction, getTotalIncome, getTotalExpense, formatCurrency, formatDate } from '../db';
 import { useAuth } from '../hooks/useAuth';
 
 function fmtShort(d: string) { const p = d.split('-'); return `${p[2]}/${p[1]}/${p[0].slice(2)}`; }
