@@ -3,8 +3,7 @@ import { getMembers, addMember, updateMember, deleteMember, type Member, formatD
 import { useAuth } from '../hooks/useAuth';
 
 export default function Members() {
-  const { isAdmin, user } = useAuth();
-  console.log('Members page - isAdmin:', isAdmin, 'email:', user?.email);
+  const { isAdmin } = useAuth();
   const [members, setMembers] = useState<Member[]>([]);
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
@@ -15,16 +14,25 @@ export default function Members() {
 
   const load = useCallback(async () => {
     const all = await getMembers();
-    setMembers(all.sort((a, b) => a.name.localeCompare(b.name, 'zh')));
+    all.sort((a, b) => a.name.localeCompare(b.name, 'zh'));
+    setMembers(all);
   }, []);
+
+  // Strip sensitive fields for non-admin
+  const displayMembers = isAdmin ? members : members.map(m => ({
+    ...m,
+    phone: '',
+    email: '',
+    joinDate: '',
+    status: 'active' as const,
+    notes: '',
+  }));
 
   useEffect(() => { load(); }, [load]);
 
   const s = search.toLowerCase();
-  const filtered = members.filter(m =>
+  const filtered = displayMembers.filter(m =>
     m.name.toLowerCase().includes(s) ||
-    m.phone.includes(search) ||
-    (m.email && m.email.toLowerCase().includes(s)) ||
     (m.licencia && m.licencia.toLowerCase().includes(s))
   );
 
