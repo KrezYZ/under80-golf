@@ -97,10 +97,14 @@ export default function Members() {
                 )}
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <span className={`tag ${m.status === 'active' ? 'tag-income' : 'tag-expense'}`}>
-                  {m.status === 'active' ? '活跃' : '停用'}
-                </span>
-                {isAdmin && <div style={{ fontSize: 11, color: '#bbb', marginTop: 4 }}>{formatDate(m.joinDate)}</div>}
+                {isAdmin && (
+                  <>
+                    <span className={`tag ${m.status === 'active' ? 'tag-income' : 'tag-expense'}`}>
+                      {m.status === 'active' ? '活跃' : '停用'}
+                    </span>
+                    <div style={{ fontSize: 11, color: '#bbb', marginTop: 4 }}>{formatDate(m.joinDate)}</div>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -117,7 +121,7 @@ export default function Members() {
       </div>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-        <input className="input" placeholder="🔍 搜索姓名/电话/执照..." value={search} onChange={e => setSearch(e.target.value)} style={{ flex: 1 }} />
+        <input className="input" placeholder="🔍 搜索姓名/执照..." value={search} onChange={e => setSearch(e.target.value)} style={{ flex: 1 }} />
         {isAdmin && <button className="btn btn-primary btn-sm" onClick={openNew}>+ 添加</button>}
       </div>
 
