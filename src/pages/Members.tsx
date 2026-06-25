@@ -81,7 +81,7 @@ export default function Members() {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 600, fontSize: 15 }}>
                   {m.name}
-                  {m.genero && <span style={{ fontSize: 13, marginLeft: 4 }}>{m.genero === 'F' ? '♀️' : '♂️'}</span>}
+                  {m.genero && <span style={{ fontSize: 12, color: '#888', marginLeft: 6 }}>{m.genero === 'F' ? '女' : '男'}</span>}
                 </div>
                 {m.licencia && (
                   <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>
@@ -155,8 +155,8 @@ export default function Members() {
               <label className="label">性别</label>
               <select className="select" value={form.genero} onChange={e => setForm({ ...form, genero: e.target.value })} disabled={!isAdmin}>
                 <option value="">未指定</option>
-                <option value="M">♂️ 男</option>
-                <option value="F">♀️ 女</option>
+                <option value="M">男</option>
+                <option value="F">女</option>
               </select>
             </div>
 
