@@ -70,7 +70,7 @@ export default function Members() {
     <div className="page">
       <div className="page-header">
         <h1 className="page-title">👥 会员管理</h1>
-        <span style={{ color: '#888', fontSize: 13 }}>共 {members.length} 人 · ♂️ {members.filter(m=>m.genero==='M').length} · ♀️ {members.filter(m=>m.genero==='F').length}</span>
+        <span style={{ color: '#888', fontSize: 13 }}>共 {members.length} 人 · 男 {members.filter(m=>m.genero==='M').length} · 女 {members.filter(m=>m.genero==='F').length}</span>
       </div>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
