@@ -29,7 +29,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', maxWidth: 600, margin: '0 auto', padding: '0 12px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', maxWidth: 480, margin: '0 auto', padding: '0 16px' }}>
       <img src="logo.png" alt="Under 80 Golf Club" style={{ width: 280, marginBottom: 12 }} />
 
       <div className="card" style={{ width: '100%', maxWidth: 360 }}>
