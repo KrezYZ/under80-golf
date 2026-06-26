@@ -7,6 +7,7 @@ import {
   INCOME_CATEGORIES, EXPENSE_CATEGORIES,
 } from '../db';
 import { useAuth } from '../hooks/useAuth';
+import { useT } from '../i18n/useT';
 
 function fmtShort(d: string) {
   const parts = d.split('-');
@@ -15,6 +16,7 @@ function fmtShort(d: string) {
 
 export default function Transactions() {
   const { isAdmin } = useAuth();
+  const { t } = useT();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [events, setEvents] = useState<GolfEvent[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -127,8 +129,8 @@ export default function Transactions() {
   return (
     <div className="page" style={{ padding: '16px 8px', paddingBottom: 'calc(80px + env(safe-area-inset-bottom))' }}>
       <div className="page-header" style={{ paddingLeft: 8, paddingRight: 8 }}>
-        <h1 className="page-title">📒 账本</h1>
-        {isAdmin && <button className="btn btn-primary btn-sm" onClick={() => openNew('expense')}>+ 记录</button>}
+        <h1 className="page-title">📒 {t('tx_title')}</h1>
+        {isAdmin && <button className="btn btn-primary btn-sm" onClick={() => openNew('expense')}>{t('tx_add')}</button>}
       </div>
 
       {/* Balance cards */}
@@ -152,7 +154,7 @@ export default function Transactions() {
         <div className="filter-pills">
           {(['all', 'income', 'expense'] as const).map(f => (
             <button key={f} className={`filter-pill ${filter === f ? 'active' : ''}`} onClick={() => setFilter(f)}>
-              {f === 'all' ? '全部' : f === 'income' ? '📈 收入' : '📉 支出'}
+              {f === 'all' ? t('tx_all') : f === 'income' ? '📈 '+t('tx_income') : '📉 '+t('tx_expense')}
             </button>
           ))}
         </div>
