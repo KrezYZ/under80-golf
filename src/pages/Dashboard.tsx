@@ -169,7 +169,7 @@ export default function Dashboard() {
         ) : (
           recentTx.map(tx => (
             <div key={tx.id} className="list-item" style={{ gap: 6, padding: '10px 0', alignItems: 'flex-start' }}>
-              <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 600, fontSize: 13, lineHeight: 1.3 }}>{tx.description}</div>
                 <div style={{ display: 'flex', gap: 4, alignItems: 'center', marginTop: 1 }}>
                   <span style={{ color: '#888', fontSize: 10, whiteSpace: 'nowrap' }}>{tx.category} · {tx.date}</span>
