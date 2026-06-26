@@ -130,7 +130,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <div className="form-group">
               <label className="label">姓名</label>
               <input className="input" value={profileForm.name}
-                onChange={e => setProfileForm({ ...profileForm, name: e.target.value })} placeholder="姓名" />
+                onChange={e => setProfileForm({ ...profileForm, name: e.target.value })} placeholder="姓名" disabled={!isAdmin} />
             </div>
             <div className="form-group">
               <label className="label">手机号 *</label>
