@@ -3,7 +3,7 @@ import {
   type Transaction,
   getTotalIncome, getTotalExpense, getBalance,
   getCurrentMonthTransactions, formatCurrency, getMonthLabel,
-  getTransactions, getActiveMemberCount,
+  getTransactions, getMembers,
   EXPENSE_CATEGORIES,
 } from '../db';
 import { exportToExcel } from '../utils/export';
@@ -28,7 +28,8 @@ export default function Dashboard() {
   const [categoryBreakdown, setCategoryBreakdown] = useState<{ name: string; amount: number }[]>([]);
 
   const refresh = useCallback(async () => {
-    const [txs, count] = await Promise.all([getTransactions(), getActiveMemberCount()]);
+    const [txs, allMembers] = await Promise.all([getTransactions(), getMembers()]);
+    const count = allMembers.length;
 
     setBalance(getBalance(txs));
     setTotalIncome(getTotalIncome(txs));
@@ -104,7 +105,7 @@ export default function Dashboard() {
           <div className={`stat-value ${bankBalance >= 0 ? 'green' : 'red'}`}>{formatCurrency(bankBalance)}</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">👥 活跃会员</div>
+          <div className="stat-label">👥 会员数</div>
           <div className="stat-value gold">{memberCount}</div>
         </div>
         <div className="stat-card">
