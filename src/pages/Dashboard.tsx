@@ -81,7 +81,7 @@ export default function Dashboard() {
     <div className="page">
       <div className="page-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <img src="/logo.jpg" alt="Logo" style={{ width: 32, height: 32, borderRadius: 8 }} />
+          <img src="logo.jpg" alt="Logo" style={{ width: 32, height: 32, borderRadius: 8 }} />
           <h1 className="page-title">UNDER 80 GOLF</h1>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
