@@ -30,7 +30,7 @@ export default function LoginScreen() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', maxWidth: 480, margin: '0 auto', padding: '0 16px' }}>
-      <img src="logo.png" alt="Under 80 Golf Club" style={{ width: 280, marginBottom: 12 }} />
+      <img src="logo.png" alt="Under 80 Golf Club" style={{ width: 200, marginBottom: 20 }} />
 
       <div className="card" style={{ width: '100%', maxWidth: 360 }}>
         <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16, color: '#1B5E20', textAlign: 'center' }}>
