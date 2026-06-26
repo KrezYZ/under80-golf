@@ -163,11 +163,11 @@ export default function Dashboard() {
           <div className="empty-state"><div style={{ fontSize: 36, marginBottom: 8 }}>📝</div><div>暂无记录</div></div>
         ) : (
           recentTx.map(tx => (
-            <div key={tx.id} className="list-item" style={{ gap: 6, padding: '10px 0' }}>
+            <div key={tx.id} className="list-item" style={{ gap: 6, padding: '10px 0', alignItems: 'flex-start' }}>
               <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-                <div style={{ fontWeight: 600, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tx.description}</div>
+                <div style={{ fontWeight: 600, fontSize: 13, lineHeight: 1.3 }}>{tx.description}</div>
                 <div style={{ display: 'flex', gap: 4, alignItems: 'center', marginTop: 1 }}>
-                  <span style={{ color: '#888', fontSize: 10 }}>{tx.category} · {tx.date}</span>
+                  <span style={{ color: '#888', fontSize: 10, whiteSpace: 'nowrap' }}>{tx.category} · {tx.date}</span>
                   {tx.paymentMethod === 'banco' && <span style={{ fontSize: 9, fontWeight: 600, color: '#1565C0', background: '#E3F2FD', padding: '1px 3px', borderRadius: 2, whiteSpace: 'nowrap' }}>🏦</span>}
                   {tx.paymentMethod === 'efectivo' && <span style={{ fontSize: 9, fontWeight: 600, color: '#2E7D32', background: '#E8F5E9', padding: '1px 3px', borderRadius: 2, whiteSpace: 'nowrap' }}>💵</span>}
                 </div>
