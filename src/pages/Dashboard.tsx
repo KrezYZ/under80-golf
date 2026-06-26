@@ -6,6 +6,7 @@ import {
   getTransactions, getMembers,
   EXPENSE_CATEGORIES,
 } from '../db';
+import { useT } from '../i18n/useT';
 import { exportToExcel } from '../utils/export';
 
 interface MonthlyStats {
@@ -15,6 +16,7 @@ interface MonthlyStats {
 }
 
 export default function Dashboard() {
+  const { t } = useT();
   const [balance, setBalance] = useState(0);
   const [cashBalance, setCashBalance] = useState(0);
   const [bankBalance, setBankBalance] = useState(0);
@@ -82,19 +84,19 @@ export default function Dashboard() {
       <div className="page-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <img src="logo.png" alt="Logo" style={{ width: 48, marginRight: 4 }} />
-          <h1 className="page-title">UNDER 80 GOLF</h1>
+          <h1 className="page-title">{t('app_name')}</h1>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn btn-outline btn-sm" onClick={() => exportToExcel()}>📤 导出</button>
+          <button className="btn btn-outline btn-sm" onClick={() => exportToExcel()}>{t('export_btn')}</button>
         </div>
       </div>
 
       <div className="card" style={{ background: 'linear-gradient(135deg, #1B5E20, #2E7D32)', color: 'white' }}>
-        <div style={{ fontSize: 13, opacity: 0.85, marginBottom: 6 }}>💰 总余额</div>
+        <div style={{ fontSize: 13, opacity: 0.85, marginBottom: 6 }}>{t('total_balance')}</div>
         <div style={{ fontSize: 36, fontWeight: 800, marginBottom: 8 }}>{formatCurrency(balance)}</div>
         <div style={{ display: 'flex', gap: 24, fontSize: 13, opacity: 0.9 }}>
-          <span>📈 总收入 {formatCurrency(totalIncome)}</span>
-          <span>📉 总支出 {formatCurrency(totalExpense)}</span>
+          <span>{t('total_income')} {formatCurrency(totalIncome)}</span>
+          <span>{t('total_expense')} {formatCurrency(totalExpense)}</span>
         </div>
       </div>
 
@@ -108,11 +110,11 @@ export default function Dashboard() {
           <div className={`stat-value ${bankBalance >= 0 ? 'green' : 'red'}`}>{formatCurrency(bankBalance)}</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">👥 会员数</div>
+          <div className="stat-label">{t('member_count')}</div>
           <div className="stat-value gold">{memberCount}</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">📊 本月结余</div>
+          <div className="stat-label">{t('month_balance')}</div>
           <div className={`stat-value ${monthIncome - monthExpense >= 0 ? 'green' : 'red'}`}>
             {formatCurrency(monthIncome - monthExpense)}
           </div>
@@ -120,7 +122,7 @@ export default function Dashboard() {
       </div>
 
       <div className="card">
-        <div className="section-title">📅 近6月收支对比</div>
+        <div className="section-title">{t('six_month_chart')}</div>
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 140, paddingTop: 10 }}>
           {monthlyStats.map((s, i) => (
             <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
@@ -139,13 +141,13 @@ export default function Dashboard() {
           ))}
         </div>
         <div style={{ display: 'flex', gap: 16, justifyContent: 'center', marginTop: 10, fontSize: 12, color: '#888' }}>
-          <span>🟢 收入</span><span>🔴 支出</span>
+          <span>🟢 {t('tx_income')}</span><span>{t('tx_expense')}</span>
         </div>
       </div>
 
       {categoryBreakdown.length > 0 && (
         <div className="card">
-          <div className="section-title">📊 支出分类总览</div>
+          <div className="section-title">{t('expense_categories')}</div>
           {categoryBreakdown.map((c, i) => (
             <div key={i} style={{ marginBottom: 10 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, marginBottom: 4 }}>
@@ -161,9 +163,9 @@ export default function Dashboard() {
       )}
 
       <div className="card">
-        <div className="section-title">🕐 最近记录</div>
+        <div className="section-title">{t('recent_records')}</div>
         {recentTx.length === 0 ? (
-          <div className="empty-state"><div style={{ fontSize: 36, marginBottom: 8 }}>📝</div><div>暂无记录</div></div>
+          <div className="empty-state"><div style={{ fontSize: 36, marginBottom: 8 }}>📝</div><div>{t('no_records')}</div></div>
         ) : (
           recentTx.map(tx => (
             <div key={tx.id} className="list-item" style={{ gap: 6, padding: '10px 0', alignItems: 'flex-start' }}>

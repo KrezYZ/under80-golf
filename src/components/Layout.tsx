@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useT } from '../i18n/useT';
 import { getMembers, updateMember, autoBackup, type Member } from '../db';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAdmin, signOut } = useAuth();
+  const { t, lang, switchLang } = useT();
 
   const [member, setMember] = useState<Member | null>(null);
   const [showProfile, setShowProfile] = useState(false);
@@ -14,10 +16,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [profileError, setProfileError] = useState('');
 
   const tabs = [
-    { path: '/', label: '总览', icon: '📊' },
-    { path: '/transactions', label: '账本', icon: '📒' },
-    { path: '/events', label: '比赛', icon: '🏆' },
-    { path: '/members', label: '会员', icon: '👥' },
+    { path: '/', label: t('nav_dashboard'), icon: '📊' },
+    { path: '/transactions', label: t('nav_transactions'), icon: '📒' },
+    { path: '/events', label: t('nav_events'), icon: '🏆' },
+    { path: '/members', label: t('nav_members'), icon: '👥' },
   ];
 
   // Find matching member by email
@@ -34,7 +36,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   const handleProfileSave = async () => {
     if (!member || !profileForm.phone.trim() || !profileForm.email.trim()) {
-      setProfileError('手机号和邮箱不能为空');
+      setProfileError(t('profile_phone_required'));
       return;
     }
     setProfileError('');
@@ -86,20 +88,21 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </div>
             {isAdmin && (
               <span style={{ fontSize: 10, fontWeight: 700, color: 'white', background: '#1B5E20', padding: '1px 6px', borderRadius: 4 }}>
-                ADMIN
+                {t('admin')}
               </span>
             )}
           </div>
         </div>
-        <button
-          onClick={() => signOut()}
-          style={{
-            background: 'none', border: '1px solid #ddd', borderRadius: 8,
-            padding: '4px 12px', fontSize: 12, color: '#888', cursor: 'pointer',
-          }}
-        >
-          退出
-        </button>
+        <div style={{ display: 'flex', gap: 6 }}>
+          <button onClick={() => switchLang(lang === 'zh' ? 'es' : 'zh')}
+            style={{ background: 'none', border: '1px solid #ddd', borderRadius: 8, padding: '4px 6px', fontSize: 14, cursor: 'pointer' }}>
+            {lang === 'zh' ? '🇪🇸' : '🇨🇳'}
+          </button>
+          <button onClick={() => signOut()}
+            style={{ background: 'none', border: '1px solid #ddd', borderRadius: 8, padding: '4px 12px', fontSize: 12, color: '#888', cursor: 'pointer' }}>
+            {t('logout')}
+          </button>
+        </div>
       </div>
 
       {children}
@@ -125,22 +128,22 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setShowProfile(false); }}>
           <div className="modal-content">
             <div className="modal-handle" />
-            <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 16, color: '#1B5E20' }}>编辑个人资料</h2>
+            <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 16, color: '#1B5E20' }}>{t('profile_title')}</h2>
 
             <div className="form-group">
-              <label className="label">姓名</label>
+              <label className="label">{t('profile_name')}</label>
               <input className="input" value={profileForm.name}
                 onChange={e => setProfileForm({ ...profileForm, name: e.target.value })} placeholder="姓名" disabled={!isAdmin} />
             </div>
             <div className="form-group">
-              <label className="label">手机号 *</label>
+              <label className="label">{t('mb_phone')} *</label>
               <input className="input" value={profileForm.phone}
-                onChange={e => setProfileForm({ ...profileForm, phone: e.target.value })} placeholder="必填" />
+                onChange={e => setProfileForm({ ...profileForm, phone: e.target.value })} placeholder={t('mb_phone')} />
             </div>
             <div className="form-group">
-              <label className="label">邮箱 *</label>
+              <label className="label">{t('mb_email')} *</label>
               <input className="input" value={profileForm.email}
-                onChange={e => setProfileForm({ ...profileForm, email: e.target.value })} placeholder="必填" />
+                onChange={e => setProfileForm({ ...profileForm, email: e.target.value })} placeholder={t('mb_email')} />
             </div>
 
             {profileError && (
@@ -150,8 +153,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             )}
 
             <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
-              <button className="btn btn-block btn-outline" onClick={() => setShowProfile(false)} style={{ flex: 1 }}>取消</button>
-              <button className="btn btn-block btn-primary" onClick={handleProfileSave} style={{ flex: 1 }}>保存</button>
+              <button className="btn btn-block btn-outline" onClick={() => setShowProfile(false)} style={{ flex: 1 }}>{t('tx_cancel')}</button>
+              <button className="btn btn-block btn-primary" onClick={handleProfileSave} style={{ flex: 1 }}>{t('tx_save')}</button>
             </div>
           </div>
         </div>
