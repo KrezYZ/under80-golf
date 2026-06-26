@@ -75,8 +75,8 @@ export default function Members() {
       </div>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-        <input className="input" placeholder="🔍 搜索姓名/执照..." value={search} onChange={e => setSearch(e.target.value)} style={{ flex: 1 }} />
-        {isAdmin && <button className="btn btn-primary btn-sm" onClick={openNew}>t('mb_add')</button>}
+        <input className="input" placeholder={`🔍 ${t('mb_search')}`} value={search} onChange={e => setSearch(e.target.value)} style={{ flex: 1 }} />
+        {isAdmin && <button className="btn btn-primary btn-sm" onClick={openNew}>{t('mb_add')}</button>}
       </div>
 
       {filtered.length === 0 ? (

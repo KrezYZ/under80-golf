@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { getEvents, addEvent, updateEvent, deleteEvent, getTransactions, type GolfEvent, type Transaction, getTotalIncome, getTotalExpense, autoBackup, formatCurrency, formatDate } from '../db';
 import { useAuth } from '../hooks/useAuth';
+import { useT } from '../i18n/useT';
 
 function fmtShort(d: string) { const p = d.split('-'); return `${p[2]}/${p[1]}/${p[0].slice(2)}`; }
 
@@ -8,6 +9,7 @@ const LAST_VISIT_KEY = 'under80_events_last_visit';
 
 export default function Events() {
   const { isAdmin, user } = useAuth();
+  const { t } = useT();
   const [events, setEvents] = useState<GolfEvent[]>([]);
   const [allTxs, setAllTxs] = useState<Transaction[]>([]);
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -88,10 +90,10 @@ export default function Events() {
     <div className="page" style={{ padding: '16px 8px', paddingBottom: 'calc(80px + env(safe-area-inset-bottom))' }}>
       <div className="page-header" style={{ paddingLeft: 8, paddingRight: 8 }}>
         <h1 className="page-title">
-          🏆 比赛管理
+          🏆 {t('ev_title')}
           {newEventsCount > 0 && <span style={{ fontSize: 12, background: '#f44336', color: 'white', padding: '2px 8px', borderRadius: 10, marginLeft: 8, fontWeight: 600 }}>{newEventsCount} 新</span>}
         </h1>
-        {isAdmin && <button className="btn btn-primary btn-sm" onClick={openNew}>+ 新建</button>}
+        {isAdmin && <button className="btn btn-primary btn-sm" onClick={openNew}>{t('ev_new')}</button>}
       </div>
 
       {events.length === 0 ? (

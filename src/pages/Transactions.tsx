@@ -136,15 +136,15 @@ export default function Transactions() {
       {/* Balance cards */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 12, padding: '0 8px' }}>
         <div className="card" style={{ padding: '10px 12px', textAlign: 'center' }}>
-          <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>💰 总余额</div>
+          <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>💰 {t('total_balance')}</div>
           <div style={{ fontSize: 16, fontWeight: 800, color: overallBalance >= 0 ? '#2E7D32' : '#C62828' }}>{formatCurrency(overallBalance)}</div>
         </div>
         <div className="card" style={{ padding: '10px 12px', textAlign: 'center' }}>
-          <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>💵 现金</div>
+          <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>💵 {t('cash_balance')}</div>
           <div style={{ fontSize: 16, fontWeight: 800, color: cashBalance >= 0 ? '#2E7D32' : '#C62828' }}>{formatCurrency(cashBalance)}</div>
         </div>
         <div className="card" style={{ padding: '10px 12px', textAlign: 'center' }}>
-          <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>🏦 银行</div>
+          <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>🏦 {t('bank_balance')}</div>
           <div style={{ fontSize: 16, fontWeight: 800, color: bankBalance >= 0 ? '#2E7D32' : '#C62828' }}>{formatCurrency(bankBalance)}</div>
         </div>
       </div>
