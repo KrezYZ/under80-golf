@@ -130,7 +130,7 @@ export default function Members() {
                 <div className="form-group"><label className="label">邮箱</label><input className="input" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="email@example.com" /></div>
                 <div className="form-group"><label className="label">状态</label><select className="select" value={form.status} onChange={e => setForm({ ...form, status: e.target.value as 'active' })}><option value="active">活跃</option><option value="inactive">停用</option></select></div>
                 <div className="form-group"><label className="label">备注</label><input className="input" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="备注信息" /></div>
-                {editing && <div className="form-group"><label className="label">加入日期</label><input className="input" value={editing.joinDate} disabled /></div>}
+                {editing && editing.joinDate && <div className="form-group"><label className="label">加入日期</label><input className="input" value={formatDate(editing.joinDate)} disabled /></div>}
                 <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
                   <button className="btn btn-block btn-outline" onClick={() => setShowForm(false)} style={{ flex: 1 }}>取消</button>
                   <button className="btn btn-block btn-primary" onClick={handleSave} style={{ flex: 1 }}>保存</button>
@@ -161,7 +161,7 @@ function AdminCard({ m, onClick }: { m: Member; onClick: () => void }) {
         </div>
         <div style={{ textAlign: 'right', flexShrink: 0 }}>
           <span className={`tag ${m.status === 'active' ? 'tag-income' : 'tag-expense'}`}>{m.status === 'active' ? '活跃' : '停用'}</span>
-          <div style={{ fontSize: 11, color: '#bbb', marginTop: 4 }}>{formatDate(m.joinDate)}</div>
+          {m.joinDate && <div style={{ fontSize: 11, color: '#bbb', marginTop: 4 }}>{formatDate(m.joinDate)}</div>}
         </div>
       </div>
     </div>
