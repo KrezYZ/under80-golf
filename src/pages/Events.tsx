@@ -120,7 +120,7 @@ export default function Events() {
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
                     <span className={`tag ${ev.status === 'upcoming' ? 'tag-income' : ev.status === 'completed' ? 'tag-income' : 'tag-expense'}`}>
-                      {ev.status === 'upcoming' ? '即将举行' : ev.status === 'completed' ? '已结束' : '已取消'}
+                      {ev.status === 'upcoming' ? t('ev_upcoming') : ev.status === 'completed' ? t('ev_completed') : t('ev_cancelled')}
                     </span>
                     {isAdmin && (
                       <button className="btn btn-outline btn-sm" style={{ fontSize: 11, padding: '2px 8px' }}

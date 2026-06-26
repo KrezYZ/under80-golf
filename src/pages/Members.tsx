@@ -86,13 +86,13 @@ export default function Members() {
           {active.length > 0 && (
             <div style={{ marginBottom: 12 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: '#888', marginBottom: 6, textTransform: 'uppercase' }}>{t('mb_active_list')} ({active.length})</div>
-              {active.map(m => isAdmin ? <AdminCard key={m.id} m={m} onClick={() => openEdit(m)} /> : <PublicCard key={m.id} m={m} onClick={() => openEdit(m)} />)}
+              {active.map(m => isAdmin ? <AdminCard key={m.id} m={m} t={t} onClick={() => openEdit(m)} /> : <PublicCard key={m.id} m={m} t={t} onClick={() => openEdit(m)} />)}
             </div>
           )}
           {inactive.length > 0 && (
             <div style={{ marginBottom: 12 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: '#888', marginBottom: 6, textTransform: 'uppercase' }}>{t('mb_inactive_list')} ({inactive.length})</div>
-              {inactive.map(m => isAdmin ? <AdminCard key={m.id} m={m} onClick={() => openEdit(m)} /> : <PublicCard key={m.id} m={m} onClick={() => openEdit(m)} />)}
+              {inactive.map(m => isAdmin ? <AdminCard key={m.id} m={m} t={t} onClick={() => openEdit(m)} /> : <PublicCard key={m.id} m={m} t={t} onClick={() => openEdit(m)} />)}
             </div>
           )}
         </>
@@ -148,13 +148,13 @@ export default function Members() {
 }
 
 // Admin card — shows all info
-function AdminCard({ m, onClick }: { m: Member; onClick: () => void }) {
+function AdminCard({ m, t, onClick }: { m: Member; t: (k: string) => string; onClick: () => void }) {
   return (
     <div className="card" style={{ padding: 12, cursor: 'pointer' }} onClick={onClick}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <div className="member-avatar">{m.name[0]}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 600, fontSize: 15 }}>{m.name}{m.genero && <span style={{ fontSize: 12, color: '#888', marginLeft: 6 }}>{m.genero === 'F' ? '女' : '男'}</span>}</div>
+          <div style={{ fontWeight: 600, fontSize: 15 }}>{m.name}{m.genero && <span style={{ fontSize: 12, color: '#888', marginLeft: 6 }}>{m.genero === 'F' ? t('gender_f') : t('gender_m')}</span>}</div>
           {m.licencia && <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>{m.licencia}</div>}
           <div style={{ fontSize: 12, color: '#aaa', marginTop: 1 }}>
             {m.phone && <span>{m.phone} · </span>}{m.email && <span>{m.email}</span>}
@@ -170,13 +170,13 @@ function AdminCard({ m, onClick }: { m: Member; onClick: () => void }) {
 }
 
 // Public card — only name, gender, licencia
-function PublicCard({ m, onClick }: { m: Member; onClick: () => void }) {
+function PublicCard({ m, t, onClick }: { m: Member; t: (k: string) => string; onClick: () => void }) {
   return (
     <div className="card" style={{ padding: 12, cursor: 'pointer' }} onClick={onClick}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <div className="member-avatar">{m.name[0]}</div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 600, fontSize: 15 }}>{m.name}{m.genero && <span style={{ fontSize: 12, color: '#888', marginLeft: 6 }}>{m.genero === 'F' ? '女' : '男'}</span>}</div>
+          <div style={{ fontWeight: 600, fontSize: 15 }}>{m.name}{m.genero && <span style={{ fontSize: 12, color: '#888', marginLeft: 6 }}>{m.genero === 'F' ? t('gender_f') : t('gender_m')}</span>}</div>
           {m.licencia && <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>{m.licencia}</div>}
         </div>
       </div>
