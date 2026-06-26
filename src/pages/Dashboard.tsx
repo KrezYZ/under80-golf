@@ -3,7 +3,7 @@ import {
   type Transaction,
   getTotalIncome, getTotalExpense, getBalance,
   getCurrentMonthTransactions, formatCurrency, getMonthLabel,
-  getTransactions, getMembers,
+  getTransactions, getMembers, getEvents,
   EXPENSE_CATEGORIES,
 } from '../db';
 import { useT } from '../i18n/useT';
@@ -30,8 +30,24 @@ export default function Dashboard() {
   const [categoryBreakdown, setCategoryBreakdown] = useState<{ name: string; amount: number }[]>([]);
 
   const refresh = useCallback(async () => {
-    const [txs, allMembers] = await Promise.all([getTransactions(), getMembers()]);
-    const count = allMembers.length;
+    const [txs, allMembers, events] = await Promise.all([getTransactions(), getMembers(), getEvents()]);
+    // Active members: participated in events within the last year
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    const recentEventEmails = new Set<string>();
+    events.forEach(ev => {
+      if (new Date(ev.date) >= oneYearAgo) {
+        try { JSON.parse(ev.attendees || '[]').forEach((e: string) => recentEventEmails.add(e.toLowerCase())); } catch {}
+      }
+    });
+    // Also check transactions linked to events in past year
+    const recentEventIds = new Set(events.filter(e => new Date(e.date) >= oneYearAgo).map(e => e.id));
+    const recentTxMembers = new Set(txs.filter(t => t.eventId && recentEventIds.has(t.eventId)).map(t => t.description));
+    const count = allMembers.filter(m => {
+      if (m.email && recentEventEmails.has(m.email.toLowerCase())) return true;
+      if (recentTxMembers.has(m.name)) return true;
+      return false;
+    }).length;
 
     setBalance(getBalance(txs));
     setTotalIncome(getTotalIncome(txs));
