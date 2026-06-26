@@ -115,11 +115,11 @@ export default function Dashboard() {
 
       <div className="stat-grid">
         <div className="stat-card">
-          <div className="stat-label">💵 现金余额</div>
+          <div className="stat-label">💵 {t('cash_balance')}</div>
           <div className={`stat-value ${cashBalance >= 0 ? 'green' : 'red'}`}>{formatCurrency(cashBalance)}</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">🏦 银行余额</div>
+          <div className="stat-label">🏦 {t('bank_balance')}</div>
           <div className={`stat-value ${bankBalance >= 0 ? 'green' : 'red'}`}>{formatCurrency(bankBalance)}</div>
         </div>
         <div className="stat-card">

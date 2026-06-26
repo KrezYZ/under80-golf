@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getMembers, addMember, updateMember, deleteMember, type Member, autoBackup, formatDate } from '../db';
 import { useAuth } from '../hooks/useAuth';
+import { useT } from '../i18n/useT';
 
 export default function Members() {
-  const { isAdmin } = useAuth();
+  const { isAdmin } = useAuth(); const { t } = useT();
   const [members, setMembers] = useState<Member[]>([]);
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
@@ -69,13 +70,13 @@ export default function Members() {
   return (
     <div className="page">
       <div className="page-header">
-        <h1 className="page-title">👥 会员管理</h1>
+        <h1 className="page-title">👥 {t("mb_title")}</h1>
         <span style={{ color: '#888', fontSize: 13 }}>共 {members.length} 人 · 男 {members.filter(m=>m.genero==='M').length} · 女 {members.filter(m=>m.genero==='F').length}</span>
       </div>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
         <input className="input" placeholder="🔍 搜索姓名/执照..." value={search} onChange={e => setSearch(e.target.value)} style={{ flex: 1 }} />
-        {isAdmin && <button className="btn btn-primary btn-sm" onClick={openNew}>+ 添加</button>}
+        {isAdmin && <button className="btn btn-primary btn-sm" onClick={openNew}>t('mb_add')</button>}
       </div>
 
       {filtered.length === 0 ? (
