@@ -43,7 +43,7 @@ export default function LoginScreen() {
       justifyContent: 'center', minHeight: '100vh', paddingBottom: 40,
     }}>
       <div style={{ textAlign: 'center', marginBottom: 32 }}>
-        <div style={{ fontSize: 56, marginBottom: 8 }}>🏌️‍♀️</div>
+        <img src="/logo.jpg" alt="Under 80 Golf Club" style={{ width: 120, height: 120, borderRadius: 20, marginBottom: 12, objectFit: 'contain' }} />
         <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1B5E20', marginBottom: 4 }}>
           UNDER 80 GOLF
         </h1>
