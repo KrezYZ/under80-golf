@@ -43,13 +43,8 @@ export default function LoginScreen() {
       justifyContent: 'center', minHeight: '100vh', paddingBottom: 40,
     }}>
       <div style={{ textAlign: 'center', marginBottom: 32 }}>
-        <img src="logo.jpg" alt="Under 80 Golf Club" style={{ width: 120, height: 120, borderRadius: 20, marginBottom: 12, objectFit: 'contain' }} />
-        <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1B5E20', marginBottom: 4 }}>
-          UNDER 80 GOLF
-        </h1>
+        <img src="logo.png" alt="Under 80 Golf Club" style={{ width: 180, marginBottom: 8 }} />
         <p style={{ fontSize: 14, color: '#888' }}>俱乐部财务管理</p>
-        <p style={{ fontSize: 11, color: '#aaa', marginTop: 4 }}>输入任意邮箱+密码即可登录查看</p>
-        <p style={{ fontSize: 11, color: '#aaa' }}>管理员账号密码见群内公告</p>
       </div>
 
       <div className="card" style={{ width: '100%', maxWidth: 360 }}>
