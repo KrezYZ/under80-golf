@@ -158,7 +158,7 @@ export default function Transactions() {
         </div>
         <div style={{ marginBottom: 12 }}>
           <select className="select" value={monthFilter} onChange={e => setMonthFilter(e.target.value)}
-            style={{ fontSize: 13, padding: '6px 12px', width: 'auto' }}>
+            style={{ fontSize: 13, padding: '6px 28px 6px 12px', width: 'auto' }}>
             <option value="all">📅 全部月份</option>
             {availableMonths.map(m => { const [y, mo] = m.split('-'); return <option key={m} value={m}>{y}年{parseInt(mo)}月</option>; })}
           </select>
