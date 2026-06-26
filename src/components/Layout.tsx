@@ -83,7 +83,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             {displayName[0]?.toUpperCase() || 'U'}
           </div>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#333', maxWidth: 180, lineHeight: 1.2 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#333' }}>
               {displayName}
             </div>
             {isAdmin && (
