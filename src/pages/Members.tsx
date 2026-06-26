@@ -71,7 +71,7 @@ export default function Members() {
     <div className="page">
       <div className="page-header">
         <h1 className="page-title">👥 {t("mb_title")}</h1>
-        <span style={{ color: '#888', fontSize: 13 }}>共 {members.length} 人 · 男 {members.filter(m=>m.genero==='M').length} · 女 {members.filter(m=>m.genero==='F').length}</span>
+        <span style={{ color: '#888', fontSize: 13 }}>共 {members.length} 人 · {t('gender_m')} {members.filter(m=>m.genero==='M').length} · {t('gender_f')} {members.filter(m=>m.genero==='F').length}</span>
       </div>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
@@ -85,13 +85,13 @@ export default function Members() {
         <>
           {active.length > 0 && (
             <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#888', marginBottom: 6, textTransform: 'uppercase' }}>活跃会员 ({active.length})</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#888', marginBottom: 6, textTransform: 'uppercase' }}>{t('mb_active_list')} ({active.length})</div>
               {active.map(m => isAdmin ? <AdminCard key={m.id} m={m} onClick={() => openEdit(m)} /> : <PublicCard key={m.id} m={m} onClick={() => openEdit(m)} />)}
             </div>
           )}
           {inactive.length > 0 && (
             <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#888', marginBottom: 6, textTransform: 'uppercase' }}>停用会员 ({inactive.length})</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#888', marginBottom: 6, textTransform: 'uppercase' }}>{t('mb_inactive_list')} ({inactive.length})</div>
               {inactive.map(m => isAdmin ? <AdminCard key={m.id} m={m} onClick={() => openEdit(m)} /> : <PublicCard key={m.id} m={m} onClick={() => openEdit(m)} />)}
             </div>
           )}
@@ -103,7 +103,7 @@ export default function Members() {
           <div className="modal-content">
             <div className="modal-handle" />
             <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 16, color: '#1B5E20' }}>
-              {editing ? (isAdmin ? '编辑会员' : '会员详情') : '添加会员'}
+              {editing ? (isAdmin ? t('mb_edit') : t('mb_detail')) : t('mb_add')}
             </h2>
 
             <div className="form-group">

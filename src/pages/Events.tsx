@@ -91,13 +91,13 @@ export default function Events() {
       <div className="page-header" style={{ paddingLeft: 8, paddingRight: 8 }}>
         <h1 className="page-title">
           🏆 {t('ev_title')}
-          {newEventsCount > 0 && <span style={{ fontSize: 12, background: '#f44336', color: 'white', padding: '2px 8px', borderRadius: 10, marginLeft: 8, fontWeight: 600 }}>{newEventsCount} 新</span>}
+          {newEventsCount > 0 && <span style={{ fontSize: 12, background: '#f44336', color: 'white', padding: '2px 8px', borderRadius: 10, marginLeft: 8, fontWeight: 600 }}>{newEventsCount} {t('ev_new_notification')}</span>}
         </h1>
         {isAdmin && <button className="btn btn-primary btn-sm" onClick={openNew}>{t('ev_new')}</button>}
       </div>
 
       {events.length === 0 ? (
-        <div className="empty-state"><div style={{ fontSize: 48 }}>⛳</div><div>还没有比赛记录</div></div>
+        <div className="empty-state"><div style={{ fontSize: 48 }}>⛳</div><div>{t('ev_no_events')}</div></div>
       ) : (
         events.map(ev => {
           const txs = getEventTxs(ev.id);
@@ -124,7 +124,7 @@ export default function Events() {
                     </span>
                     {isAdmin && (
                       <button className="btn btn-outline btn-sm" style={{ fontSize: 11, padding: '2px 8px' }}
-                        onClick={e => { e.stopPropagation(); openEdit(ev); }}>编辑</button>
+                        onClick={e => { e.stopPropagation(); openEdit(ev); }}>{t('ev_edit')}</button>
                     )}
                   </div>
                 </div>
@@ -136,7 +136,7 @@ export default function Events() {
                       className={`btn btn-sm ${isRegistered ? 'btn-primary' : 'btn-outline'}`}
                       style={{ fontSize: 12, padding: '4px 14px', width: '100%' }}
                       onClick={e => { e.stopPropagation(); handleRegister(ev); }}>
-                      {isRegistered ? '✅ 已报名（点击取消）' : '✋ 报名参加'}
+                      {isRegistered ? t('ev_registered') : t('ev_register')}
                     </button>
                     {attendees.length > 0 && (
                       <div style={{ fontSize: 11, color: '#888', marginTop: 4, textAlign: 'center' }}>
@@ -147,14 +147,14 @@ export default function Events() {
                 )}
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, paddingTop: 8, borderTop: '1px solid #f0f0f0' }}>
-                  <span style={{ color: '#888' }}>收支结余</span>
+                  <span style={{ color: '#888' }}>{t('ev_balance')}</span>
                   <span className={balance >= 0 ? 'amount-income' : 'amount-expense'} style={{ fontSize: 16 }}>
                     {formatCurrency(balance)}
                   </span>
                 </div>
                 <div style={{ display: 'flex', gap: 16, marginTop: 4, fontSize: 12, color: '#aaa' }}>
-                  <span>📈 收入 {formatCurrency(income)}</span>
-                  <span>📉 支出 {formatCurrency(expense)}</span>
+                  <span>📈 {t('ev_income')} {formatCurrency(income)}</span>
+                  <span>📉 {t('ev_expense')} {formatCurrency(expense)}</span>
                   <span style={{ marginLeft: 'auto', color: isOpen ? '#2E7D32' : '#888' }}>{isOpen ? '▲' : '▼'} {txs.length} 条</span>
                 </div>
               </div>
@@ -177,7 +177,7 @@ export default function Events() {
                       </div>
                     ))
                   ) : (
-                    <div style={{ padding: 20, textAlign: 'center', color: '#999', fontSize: 13 }}>暂无关联交易</div>
+                    <div style={{ padding: 20, textAlign: 'center', color: '#999', fontSize: 13 }}>{t('ev_no_tx')}</div>
                   )}
                 </div>
               )}
@@ -192,13 +192,13 @@ export default function Events() {
           <div className="modal-content">
             <div className="modal-handle" />
             <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 16, color: '#1B5E20' }}>
-              {editing ? (isAdmin ? '编辑比赛' : '比赛详情') : '新建比赛'}
+              {editing ? (isAdmin ? t('ev_edit') : t('ev_detail')) : t('ev_new')}
             </h2>
             <div className="form-group"><label className="label">比赛名称 *</label><input className="input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="例如：6月月例赛" disabled={!isAdmin && !!editing} /></div>
             <div className="form-group"><label className="label">日期 *</label><input className="input" type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} disabled={!isAdmin && !!editing} /></div>
             <div className="form-group"><label className="label">时间</label><input className="input" type="time" value={form.time} onChange={e => setForm({ ...form, time: e.target.value })} disabled={!isAdmin && !!editing} /></div>
             <div className="form-group"><label className="label">地点</label><input className="input" value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} placeholder="球场名称" disabled={!isAdmin && !!editing} /></div>
-            <div className="form-group"><label className="label">状态</label><select className="select" value={form.status} onChange={e => setForm({ ...form, status: e.target.value as 'upcoming' })} disabled={!isAdmin}><option value="upcoming">即将举行</option><option value="completed">已结束</option><option value="cancelled">已取消</option></select></div>
+            <div className="form-group"><label className="label">状态</label><select className="select" value={form.status} onChange={e => setForm({ ...form, status: e.target.value as 'upcoming' })} disabled={!isAdmin}><option value="upcoming">{t('ev_upcoming')}</option><option value="completed">{t('ev_completed')}</option><option value="cancelled">{t('ev_cancelled')}</option></select></div>
             <div className="form-group"><label className="label">备注</label><input className="input" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="比赛备注" disabled={!isAdmin && !!editing} /></div>
             {isAdmin && (<>
               <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
