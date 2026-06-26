@@ -43,7 +43,8 @@ export default function LoginScreen() {
       justifyContent: 'center', minHeight: '100vh', paddingBottom: 40,
     }}>
       <div style={{ textAlign: 'center', marginBottom: 32 }}>
-        <img src="logo.png" alt="Under 80 Golf Club" style={{ width: 180, marginBottom: 8 }} />
+        <img src="logo.png" alt="Under 80 Golf Club" style={{ width: 240, marginBottom: 16 }} />
+        <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1B5E20', marginBottom: 4 }}>🏌️ UNDER 80 GOLF 🏌️‍♀️</h1>
         <p style={{ fontSize: 14, color: '#888' }}>俱乐部财务管理</p>
       </div>
 
