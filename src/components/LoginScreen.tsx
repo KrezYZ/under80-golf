@@ -4,7 +4,7 @@ import { useT } from '../i18n/useT';
 
 export default function LoginScreen() {
   const { signIn, signUp } = useAuth();
-  const { t } = useT();
+  const { t, lang, switchLang } = useT();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isRegister, setIsRegister] = useState(false);
@@ -32,6 +32,12 @@ export default function LoginScreen() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', maxWidth: 480, margin: '0 auto', padding: '0 16px' }}>
+      <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 10 }}>
+        <button onClick={() => switchLang(lang === 'zh' ? 'es' : 'zh')}
+          style={{ background: 'white', border: '1px solid #ddd', borderRadius: 8, padding: '6px 10px', fontSize: 16, cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+          {lang === 'zh' ? '🇪🇸 ES' : '🇨🇳 中文'}
+        </button>
+      </div>
       <img src="logo.png" alt="Under 80 Golf Club" style={{ width: 200, marginBottom: 20 }} />
 
       <div className="card" style={{ width: '100%', maxWidth: 360 }}>

@@ -1,5 +1,6 @@
 import { createContext, useEffect, useState, type ReactNode } from 'react';
 import { supabase, ADMIN_EMAILS } from '../firebase/config';
+import { t, getLang } from '../i18n/translations';
 import type { User } from '@supabase/supabase-js';
 
 export interface AuthContextType {
@@ -40,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = async (email: string, password: string) => {
     // Only allow registration if email is in the members table
     const { data: member } = await supabase.from('members').select('email').eq('email', email).maybeSingle();
-    if (!member) throw new Error('该邮箱不在会员列表中，无法注册。请联系管理员添加。');
+    if (!member) throw new Error(t[getLang()]['not_in_member_list']);
     const { error } = await supabase.auth.signUp({ email, password });
     if (error) throw error;
   };
