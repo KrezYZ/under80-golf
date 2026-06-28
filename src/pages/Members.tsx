@@ -44,7 +44,12 @@ export default function Members() {
 
   const openEdit = (m: Member) => {
     setEditing(m);
-    setForm({ name: m.name, phone: m.phone, email: m.email, licencia: m.licencia || '', genero: m.genero || '', status: m.status, notes: m.notes });
+    // Non-admin only sees public fields
+    if (!isAdmin) {
+      setForm({ name: m.name, phone: '', email: '', licencia: m.licencia || '', genero: m.genero || '', status: 'active', notes: '' });
+    } else {
+      setForm({ name: m.name, phone: m.phone, email: m.email, licencia: m.licencia || '', genero: m.genero || '', status: m.status, notes: m.notes });
+    }
     setShowForm(true);
   };
 
