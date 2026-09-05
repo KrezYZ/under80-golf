@@ -19,16 +19,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    let active = true;
+    const loadingTimeout = window.setTimeout(() => {
+      if (active) setLoading(false);
+    }, 8000);
+
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        if (active) setUser(session?.user ?? null);
+      })
+      .catch((error) => {
+        console.error('Unable to restore login session:', error);
+      })
+      .finally(() => {
+        window.clearTimeout(loadingTimeout);
+        if (active) setLoading(false);
+      });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
+    return () => {
+      active = false;
+      window.clearTimeout(loadingTimeout);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const isAdmin = !!(user?.email && ADMIN_EMAILS.some(e => e.toLowerCase() === user.email!.toLowerCase()));
