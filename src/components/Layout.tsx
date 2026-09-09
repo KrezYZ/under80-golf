@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useT } from '../i18n/useT';
-import { getMembers, updateMember, autoBackup, type Member } from '../db';
+import { getMembers, getMyMemberIdentity, updateMember, autoBackup, type Member } from '../db';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
@@ -19,12 +19,19 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { path: '/', label: t('nav_dashboard'), icon: '📊' },
     { path: '/transactions', label: t('nav_transactions'), icon: '📒' },
     { path: '/events', label: t('nav_events'), icon: '🏆' },
+    { path: '/ranking', label: t('nav_ranking'), icon: '🏅' },
     { path: '/members', label: t('nav_members'), icon: '👥' },
   ];
 
   // Find matching member by email
   useEffect(() => {
     if (!user?.email) return;
+    if (!isAdmin) {
+      getMyMemberIdentity().then(identity => {
+        if (identity) setMember(identity as Member);
+      });
+      return;
+    }
     getMembers().then(all => {
       const m = all.find(m => m.email?.toLowerCase() === user.email!.toLowerCase());
       if (m) {
@@ -32,7 +39,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         setProfileForm({ name: m.name, phone: m.phone, email: m.email });
       }
     });
-  }, [user?.email]);
+  }, [user?.email, isAdmin]);
 
   const handleProfileSave = async () => {
     if (!member || !profileForm.phone.trim() || !profileForm.email.trim()) {
@@ -72,8 +79,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         position: 'sticky', top: 0, zIndex: 50,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
-          onClick={() => setShowProfile(true)}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: isAdmin ? 'pointer' : 'default' }}
+          onClick={() => { if (isAdmin) setShowProfile(true); }}>
           <div style={{
             width: 32, height: 32, borderRadius: '50%',
             background: '#E8F5E9', color: '#1B5E20',
@@ -94,6 +101,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
+          <button onClick={() => navigate('/notifications')}
+            style={{ background: 'none', border: '1px solid #ddd', borderRadius: 8, padding: '4px 8px', fontSize: 14, cursor: 'pointer' }}>🔔</button>
           <button onClick={() => switchLang(lang === 'zh' ? 'es' : 'zh')}
             style={{ background: 'none', border: '1px solid #ddd', borderRadius: 8, padding: '4px 6px', fontSize: 14, cursor: 'pointer' }}>
             {lang === 'zh' ? '🇪🇸' : '🇨🇳'}

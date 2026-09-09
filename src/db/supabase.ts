@@ -23,7 +23,19 @@ export interface GolfEvent {
   status: 'upcoming' | 'completed' | 'cancelled';
   notes: string;
   attendees: string;
+  meeting_time?: string;
+  registration_deadline?: string | null;
+  capacity?: number | null;
+  results_published?: boolean;
+  attendee_count?: number;
+  is_registered?: boolean;
 }
+
+export interface EventRegistration { id: string; event_id: string; user_id: string; member_id: string | null; status: 'registered' | 'cancelled'; registered_at: string; member?: Pick<Member, 'id'|'name'|'licencia'>; }
+export interface TeeAssignment { id: string; event_id: string; member_id: string; group_name: string; tee: string; tee_time: string; notes: string; member?: Pick<Member, 'id'|'name'|'licencia'>; }
+export interface EventResult { id: string; event_id: string; member_id: string; stableford: number; gross_score?: number | null; handicap_playing?: number | null; position?: number | null; source: 'manual'|'golf_directo'; notes: string; member?: Pick<Member, 'id'|'name'|'licencia'>; }
+export interface RankingRow { year: number; member_id: string; name: string; licencia: string; events_played: number; total_stableford: number; best_round: number; average_stableford: number; ranking: number; }
+export interface AppNotification { id: string; title: string; body: string; event_id?: string | null; read_at?: string | null; delivered_at?: string | null; created_at: string; }
 
 export interface Transaction {
   id: string;
@@ -49,6 +61,18 @@ export async function getMembers(): Promise<Member[]> {
   return data || [];
 }
 
+export async function getMemberDirectory(): Promise<Pick<Member, 'id'|'name'|'licencia'>[]> {
+  const { data, error } = await supabase.rpc('get_member_directory');
+  if (error) throw error;
+  return data || [];
+}
+
+export async function getMyMemberIdentity(): Promise<Pick<Member, 'id'|'name'|'licencia'> | null> {
+  const { data, error } = await supabase.rpc('get_my_member_identity');
+  if (error) throw error;
+  return data?.[0] || null;
+}
+
 export async function addMember(data: Omit<Member, 'id'>): Promise<Member> {
   const { data: result, error } = await supabase.from('members').insert(data).select().single();
   if (error) throw error;
@@ -67,9 +91,15 @@ export async function deleteMember(id: string): Promise<void> {
 
 // ---- CRUD: Events ----
 
-export async function getEvents(): Promise<GolfEvent[]> {
-  const { data } = await supabase.from('events').select('*').order('date', { ascending: false });
-  return data || [];
+export async function getEvents(access: 'public'|'admin' = 'public'): Promise<GolfEvent[]> {
+  if (access === 'admin') {
+    const { data, error } = await supabase.from('events').select('*').order('date', { ascending: false });
+    if (error) throw error;
+    return data || [];
+  }
+  const { data, error } = await supabase.rpc('get_events_public');
+  if (error) throw error;
+  return (data || []).map((event: GolfEvent) => ({ ...event, attendees: '[]' }));
 }
 
 export async function addEvent(data: Omit<GolfEvent, 'id'>): Promise<GolfEvent> {
@@ -85,6 +115,65 @@ export async function updateEvent(id: string, data: Omit<GolfEvent, 'id'>): Prom
 
 export async function deleteEvent(id: string): Promise<void> {
   const { error } = await supabase.from('events').delete().eq('id', id);
+  if (error) throw error;
+}
+
+export async function getRegistrations(eventId: string): Promise<EventRegistration[]> {
+  const { data, error } = await supabase.from('event_registrations').select('*').eq('event_id', eventId).eq('status', 'registered');
+  if (error) throw error;
+  return data || [];
+}
+
+export async function toggleEventRegistration(eventId: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc('toggle_event_registration', { p_event_id: eventId });
+  if (error) throw error;
+  return data === true;
+}
+
+export async function getTeeAssignments(eventId: string): Promise<TeeAssignment[]> {
+  const { data, error } = await supabase.from('tee_assignments').select('*').eq('event_id', eventId).order('tee_time');
+  if (error) throw error;
+  return data || [];
+}
+
+export async function saveTeeAssignment(value: Omit<TeeAssignment, 'id'|'member'>): Promise<void> {
+  const { error } = await supabase.from('tee_assignments').upsert(value, { onConflict: 'event_id,member_id' });
+  if (error) throw error;
+}
+
+export async function getEventResults(eventId: string): Promise<EventResult[]> {
+  const { data, error } = await supabase.from('event_results').select('*').eq('event_id', eventId).order('stableford', { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
+export async function saveEventResult(value: Omit<EventResult, 'id'|'member'>): Promise<void> {
+  const { error } = await supabase.from('event_results').upsert(value, { onConflict: 'event_id,member_id' });
+  if (error) throw error;
+}
+
+export async function getAnnualRanking(year: number): Promise<RankingRow[]> {
+  const { data, error } = await supabase.rpc('get_annual_stableford_ranking', { p_year: year });
+  if (error) throw error;
+  return data || [];
+}
+
+export async function getNotifications(): Promise<AppNotification[]> {
+  const { data, error } = await supabase.from('notifications').select('*').order('created_at', { ascending: false }).limit(50);
+  if (error) throw error;
+  return data || [];
+}
+
+export async function savePushSubscription(subscription: PushSubscription): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Login required');
+  const json = subscription.toJSON();
+  const { error } = await supabase.from('push_subscriptions').upsert({ user_id: user.id, endpoint: subscription.endpoint, subscription: json, updated_at: new Date().toISOString() }, { onConflict: 'user_id,endpoint' });
+  if (error) throw error;
+}
+
+export async function markNotificationRead(id: string): Promise<void> {
+  const { error } = await supabase.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', id);
   if (error) throw error;
 }
 
@@ -173,12 +262,15 @@ export async function autoBackup(label: string = 'auto') {
   clearTimeout(backupTimer);
   backupTimer = setTimeout(async () => {
     try {
-      const [members, events, transactions] = await Promise.all([
-        getMembers(), getEvents(), getTransactions(),
+      const [members, events, transactions, registrations, teeAssignments, eventResults] = await Promise.all([
+        getMembers(), getEvents('admin'), getTransactions(),
+        supabase.from('event_registrations').select('*').then(({ data, error }) => { if (error) throw error; return data || []; }),
+        supabase.from('tee_assignments').select('*').then(({ data, error }) => { if (error) throw error; return data || []; }),
+        supabase.from('event_results').select('*').then(({ data, error }) => { if (error) throw error; return data || []; }),
       ]);
       await supabase.from('backups').insert({
         label,
-        data: { members, events, transactions },
+        data: { members, events, transactions, registrations, teeAssignments, eventResults },
       });
     } catch (e) {
       console.error('Backup failed:', e);

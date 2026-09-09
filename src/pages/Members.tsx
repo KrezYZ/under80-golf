@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getMembers, addMember, updateMember, deleteMember, type Member, autoBackup, formatDate } from '../db';
+import { getMembers, getMemberDirectory, addMember, updateMember, deleteMember, type Member, autoBackup, formatDate } from '../db';
 import { useAuth } from '../hooks/useAuth';
 import { useT } from '../i18n/useT';
 
@@ -14,9 +14,9 @@ export default function Members() {
   });
 
   const load = useCallback(async () => {
-    const all = await getMembers();
+    const all = isAdmin ? await getMembers() : await getMemberDirectory() as Member[];
     setMembers(all.sort((a, b) => a.name.localeCompare(b.name, 'zh')));
-  }, []);
+  }, [isAdmin]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -26,8 +26,8 @@ export default function Members() {
     (m.licencia && m.licencia.toLowerCase().includes(s))
   );
 
-  const active = filtered.filter(m => m.status === 'active');
-  const inactive = filtered.filter(m => m.status === 'inactive');
+  const active = isAdmin ? filtered.filter(m => m.status === 'active') : filtered;
+  const inactive = isAdmin ? filtered.filter(m => m.status === 'inactive') : [];
 
   useEffect(() => {
     if (showForm) { document.body.style.overflow = 'hidden'; }
@@ -76,7 +76,7 @@ export default function Members() {
     <div className="page">
       <div className="page-header">
         <h1 className="page-title">👥 {t("mb_title")}</h1>
-        <span style={{ color: '#888', fontSize: 13 }}>共 {members.length} 人 · {t('gender_m')} {members.filter(m=>m.genero==='M').length} · {t('gender_f')} {members.filter(m=>m.genero==='F').length}</span>
+        <span style={{ color: '#888', fontSize: 13 }}>共 {members.length} 人</span>
       </div>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
@@ -91,13 +91,13 @@ export default function Members() {
           {active.length > 0 && (
             <div style={{ marginBottom: 12 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: '#888', marginBottom: 6, textTransform: 'uppercase' }}>{t('mb_active_list')} ({active.length})</div>
-              {active.map(m => isAdmin ? <AdminCard key={m.id} m={m} t={t} onClick={() => openEdit(m)} /> : <PublicCard key={m.id} m={m} t={t} onClick={() => openEdit(m)} />)}
+              {active.map(m => isAdmin ? <AdminCard key={m.id} m={m} t={t} onClick={() => openEdit(m)} /> : <PublicCard key={m.id} m={m} />)}
             </div>
           )}
           {inactive.length > 0 && (
             <div style={{ marginBottom: 12 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: '#888', marginBottom: 6, textTransform: 'uppercase' }}>{t('mb_inactive_list')} ({inactive.length})</div>
-              {inactive.map(m => isAdmin ? <AdminCard key={m.id} m={m} t={t} onClick={() => openEdit(m)} /> : <PublicCard key={m.id} m={m} t={t} onClick={() => openEdit(m)} />)}
+              {inactive.map(m => isAdmin ? <AdminCard key={m.id} m={m} t={t} onClick={() => openEdit(m)} /> : <PublicCard key={m.id} m={m} />)}
             </div>
           )}
         </>
@@ -175,13 +175,13 @@ function AdminCard({ m, t, onClick }: { m: Member; t: (k: string) => string; onC
 }
 
 // Public card — only name, gender, licencia
-function PublicCard({ m, t, onClick }: { m: Member; t: (k: string) => string; onClick: () => void }) {
+function PublicCard({ m }: { m: Member }) {
   return (
-    <div className="card" style={{ padding: 12, cursor: 'pointer' }} onClick={onClick}>
+    <div className="card" style={{ padding: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <div className="member-avatar">{m.name[0]}</div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 600, fontSize: 15 }}>{m.name}{m.genero && <span style={{ fontSize: 12, color: '#888', marginLeft: 6 }}>{m.genero === 'F' ? t('gender_f') : t('gender_m')}</span>}</div>
+          <div style={{ fontWeight: 600, fontSize: 15 }}>{m.name}</div>
           {m.licencia && <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>{m.licencia}</div>}
         </div>
       </div>

@@ -48,18 +48,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const isAdmin = !!(user?.email && ADMIN_EMAILS.some(e => e.toLowerCase() === user.email!.toLowerCase()));
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!user) { setIsAdmin(false); return; }
+    const fallback = !!(user.email && ADMIN_EMAILS.some(e => e.toLowerCase() === user.email!.toLowerCase()));
+    setIsAdmin(fallback);
+    supabase.rpc('is_app_admin').then(({ data, error }) => { if (!error) setIsAdmin(data === true); });
+  }, [user]);
+
+  const assertActiveMember = async (email: string) => {
+    const normalized = email.trim().toLowerCase();
+    const { data, error } = await supabase.rpc('is_active_member_email', { p_email: normalized });
+    if (error || data !== true) throw new Error(t[getLang()]['not_in_member_list']);
+    return normalized;
+  };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const normalized = await assertActiveMember(email);
+    const { error } = await supabase.auth.signInWithPassword({ email: normalized, password });
     if (error) throw error;
   };
 
   const signUp = async (email: string, password: string) => {
-    // Only allow registration if email is in the members table
-    const { data: member } = await supabase.from('members').select('email').eq('email', email).maybeSingle();
-    if (!member) throw new Error(t[getLang()]['not_in_member_list']);
-    const { error } = await supabase.auth.signUp({ email, password });
+    const normalized = await assertActiveMember(email);
+    const { error } = await supabase.auth.signUp({ email: normalized, password });
     if (error) throw error;
   };
 

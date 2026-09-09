@@ -7,6 +7,8 @@ import Dashboard from './pages/Dashboard';
 import Members from './pages/Members';
 import Events from './pages/Events';
 import Transactions from './pages/Transactions';
+import Ranking from './pages/Ranking';
+import Notifications from './pages/Notifications';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -34,6 +36,8 @@ function AppContent() {
           <Route path="/members" element={<Members />} />
           <Route path="/events" element={<Events />} />
           <Route path="/transactions" element={<Transactions />} />
+          <Route path="/ranking" element={<Ranking />} />
+          <Route path="/notifications" element={<Notifications />} />
         </Routes>
       </Layout>
     </HashRouter>

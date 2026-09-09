@@ -1,0 +1,10 @@
+{
+  "name": "Under 80 Golf Club",
+  "short_name": "Under 80",
+  "start_url": "/under80-golf/",
+  "scope": "/under80-golf/",
+  "display": "standalone",
+  "background_color": "#f7faf7",
+  "theme_color": "#1B5E20",
+  "icons": [{"src":"logo.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]
+}

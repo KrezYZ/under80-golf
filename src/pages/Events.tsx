@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { getEvents, addEvent, updateEvent, deleteEvent, getTransactions, type GolfEvent, type Transaction, getTotalIncome, getTotalExpense, autoBackup, formatCurrency, formatDate } from '../db';
+import { getEvents, addEvent, updateEvent, deleteEvent, getTransactions, getRegistrations, toggleEventRegistration, type EventRegistration, type GolfEvent, type Transaction, getTotalIncome, getTotalExpense, autoBackup, formatCurrency, formatDate } from '../db';
 import { useAuth } from '../hooks/useAuth';
 import { useT } from '../i18n/useT';
 
@@ -12,19 +12,22 @@ export default function Events() {
   const { t } = useT();
   const [events, setEvents] = useState<GolfEvent[]>([]);
   const [allTxs, setAllTxs] = useState<Transaction[]>([]);
+  const [registrations, setRegistrations] = useState<Record<string, EventRegistration[]>>({});
   const [expanded, setExpanded] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<GolfEvent | null>(null);
-  const [form, setForm] = useState<{ name: string; date: string; time: string; location: string; status: 'upcoming' | 'completed' | 'cancelled'; notes: string }>({
-    name: '', date: '', time: '', location: '', status: 'upcoming', notes: '',
+  const [form, setForm] = useState<{ name: string; date: string; time: string; meeting_time: string; registration_deadline: string; capacity: string; location: string; status: 'upcoming' | 'completed' | 'cancelled'; notes: string }>({
+    name: '', date: '', time: '', meeting_time: '', registration_deadline: '', capacity: '', location: '', status: 'upcoming', notes: '',
   });
 
   const load = useCallback(async () => {
-    const [all, txs] = await Promise.all([getEvents(), getTransactions()]);
+    const [all, txs] = await Promise.all([getEvents(isAdmin ? 'admin' : 'public'), getTransactions()]);
     all.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     setEvents(all);
     setAllTxs(txs);
-  }, []);
+    const registrationPairs = await Promise.all(all.map(async event => [event.id, await getRegistrations(event.id)] as const));
+    setRegistrations(Object.fromEntries(registrationPairs));
+  }, [isAdmin]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -44,38 +47,28 @@ export default function Events() {
   }, [showForm]);
 
   const getEventTxs = (eventId: string) => allTxs.filter(t => t.eventId === eventId);
-  const getAttendees = (json: string): string[] => { try { return JSON.parse(json || '[]'); } catch { return []; } };
-
   const handleRegister = async (ev: GolfEvent) => {
     if (!user?.email) return;
-    const attendees = getAttendees(ev.attendees);
-    if (attendees.includes(user.email)) {
-      // Unregister
-      const updated = attendees.filter(e => e !== user.email);
-      await updateEvent(ev.id, { name: ev.name, date: ev.date, time: ev.time || '', location: ev.location, status: ev.status, notes: ev.notes, attendees: JSON.stringify(updated) });
-    } else {
-      attendees.push(user.email);
-      await updateEvent(ev.id, { name: ev.name, date: ev.date, time: ev.time || '', location: ev.location, status: ev.status, notes: ev.notes, attendees: JSON.stringify(attendees) });
-    }
+    await toggleEventRegistration(ev.id);
     load();
   };
 
   const openNew = () => {
     if (!isAdmin) return;
     setEditing(null);
-    setForm({ name: '', date: new Date().toISOString().slice(0, 10), time: '', location: '', status: 'upcoming', notes: '' });
+    setForm({ name: '', date: new Date().toISOString().slice(0, 10), time: '', meeting_time: '', registration_deadline: '', capacity: '', location: '', status: 'upcoming', notes: '' });
     setShowForm(true);
   };
 
   const openEdit = (ev: GolfEvent) => {
     setEditing(ev);
-    setForm({ name: ev.name, date: ev.date, time: ev.time || '', location: ev.location, status: ev.status, notes: ev.notes });
+    setForm({ name: ev.name, date: ev.date, time: ev.time || '', meeting_time: ev.meeting_time || '', registration_deadline: ev.registration_deadline?.slice(0,16) || '', capacity: ev.capacity?.toString() || '', location: ev.location, status: ev.status, notes: ev.notes });
     setShowForm(true);
   };
 
   const handleSave = async () => {
     if (!isAdmin || !form.name.trim() || !form.date) return;
-    const data = { ...form, attendees: editing?.attendees || '[]' };
+    const data = { ...form, capacity: form.capacity ? Number(form.capacity) : null, registration_deadline: form.registration_deadline || null, attendees: editing?.attendees || '[]', results_published: editing?.results_published || false };
     if (editing) { await updateEvent(editing.id, data); }
     else { await addEvent(data); }
     setShowForm(false); load(); autoBackup('编辑/添加比赛');
@@ -105,8 +98,8 @@ export default function Events() {
           const expense = getTotalExpense(txs);
           const balance = income - expense;
           const isOpen = expanded === ev.id;
-          const attendees = getAttendees(ev.attendees);
-          const isRegistered = user?.email && attendees.includes(user.email);
+          const eventRegistrations = registrations[ev.id] || [];
+          const isRegistered = isAdmin ? eventRegistrations.some(r => r.user_id === user?.id && r.status === 'registered') : !!ev.is_registered;
 
           return (
             <div key={ev.id} className="card" style={{ padding: 0, margin: '0 8px 10px', overflow: 'hidden' }}>
@@ -138,9 +131,9 @@ export default function Events() {
                       onClick={e => { e.stopPropagation(); handleRegister(ev); }}>
                       {isRegistered ? t('ev_registered') : t('ev_register')}
                     </button>
-                    {attendees.length > 0 && (
+                    {(isAdmin ? eventRegistrations.length : ev.attendee_count || 0) > 0 && (
                       <div style={{ fontSize: 11, color: '#888', marginTop: 4, textAlign: 'center' }}>
-                        已报名 {attendees.length} 人
+                        {t('ev_registered_count')} {isAdmin ? eventRegistrations.length : ev.attendee_count}{ev.capacity ? ` / ${ev.capacity}` : ''} {t('ev_people')}
                       </div>
                     )}
                   </div>
@@ -162,10 +155,10 @@ export default function Events() {
               {/* Expanded: attendees + transactions */}
               {isOpen && (
                 <div style={{ borderTop: '1px solid #e0e6e0', background: '#fafbfa' }}>
-                  {attendees.length > 0 && ev.status === 'upcoming' && (
+                  {isAdmin && eventRegistrations.length > 0 && ev.status === 'upcoming' && (
                     <div style={{ padding: '10px 14px', borderBottom: '1px solid #e0e0e0' }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: '#1B5E20', marginBottom: 4 }}>👥 已报名 ({attendees.length})</div>
-                      <div style={{ fontSize: 12, color: '#666' }}>{attendees.map(e => e.split('@')[0]).join('、')}</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#1B5E20', marginBottom: 4 }}>👥 {t('ev_registered_count')} ({eventRegistrations.length})</div>
+                      <div style={{ fontSize: 12, color: '#666' }}>{t('ev_ranking_hint')}</div>
                     </div>
                   )}
                   {txs.length > 0 ? (
@@ -194,20 +187,23 @@ export default function Events() {
             <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 16, color: '#1B5E20' }}>
               {editing ? (isAdmin ? t('ev_edit') : t('ev_detail')) : t('ev_new')}
             </h2>
-            <div className="form-group"><label className="label">比赛名称 *</label><input className="input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="例如：6月月例赛" disabled={!isAdmin && !!editing} /></div>
-            <div className="form-group"><label className="label">日期 *</label><input className="input" type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} disabled={!isAdmin && !!editing} /></div>
-            <div className="form-group"><label className="label">时间</label><input className="input" type="time" value={form.time} onChange={e => setForm({ ...form, time: e.target.value })} disabled={!isAdmin && !!editing} /></div>
-            <div className="form-group"><label className="label">地点</label><input className="input" value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} placeholder="球场名称" disabled={!isAdmin && !!editing} /></div>
-            <div className="form-group"><label className="label">状态</label><select className="select" value={form.status} onChange={e => setForm({ ...form, status: e.target.value as 'upcoming' })} disabled={!isAdmin}><option value="upcoming">{t('ev_upcoming')}</option><option value="completed">{t('ev_completed')}</option><option value="cancelled">{t('ev_cancelled')}</option></select></div>
-            <div className="form-group"><label className="label">备注</label><input className="input" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="比赛备注" disabled={!isAdmin && !!editing} /></div>
+            <div className="form-group"><label className="label">{t('ev_name')}</label><input className="input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} disabled={!isAdmin && !!editing} /></div>
+            <div className="form-group"><label className="label">{t('ev_date')}</label><input className="input" type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} disabled={!isAdmin && !!editing} /></div>
+            <div className="form-group"><label className="label">{t('ev_time')}</label><input className="input" type="time" value={form.time} onChange={e => setForm({ ...form, time: e.target.value })} disabled={!isAdmin && !!editing} /></div>
+            <div className="form-group"><label className="label">{t('ev_meeting_time')}</label><input className="input" type="time" value={form.meeting_time} onChange={e => setForm({ ...form, meeting_time: e.target.value })} disabled={!isAdmin} /></div>
+            <div className="form-group"><label className="label">{t('ev_deadline')}</label><input className="input" type="datetime-local" value={form.registration_deadline} onChange={e => setForm({ ...form, registration_deadline: e.target.value })} disabled={!isAdmin} /></div>
+            <div className="form-group"><label className="label">{t('ev_capacity')}</label><input className="input" type="number" min="1" value={form.capacity} onChange={e => setForm({ ...form, capacity: e.target.value })} disabled={!isAdmin} /></div>
+            <div className="form-group"><label className="label">{t('ev_location')}</label><input className="input" value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} disabled={!isAdmin && !!editing} /></div>
+            <div className="form-group"><label className="label">{t('ev_status')}</label><select className="select" value={form.status} onChange={e => setForm({ ...form, status: e.target.value as 'upcoming' })} disabled={!isAdmin}><option value="upcoming">{t('ev_upcoming')}</option><option value="completed">{t('ev_completed')}</option><option value="cancelled">{t('ev_cancelled')}</option></select></div>
+            <div className="form-group"><label className="label">{t('ev_notes')}</label><input className="input" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} disabled={!isAdmin && !!editing} /></div>
             {isAdmin && (<>
               <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
-                <button className="btn btn-block btn-outline" onClick={() => setShowForm(false)} style={{ flex: 1 }}>取消</button>
-                <button className="btn btn-block btn-primary" onClick={handleSave} style={{ flex: 1 }}>保存</button>
+                <button className="btn btn-block btn-outline" onClick={() => setShowForm(false)} style={{ flex: 1 }}>{t('tx_cancel')}</button>
+                <button className="btn btn-block btn-primary" onClick={handleSave} style={{ flex: 1 }}>{t('tx_save')}</button>
               </div>
-              {editing && <div style={{ marginTop: 10 }}><button className="btn btn-block btn-danger" onClick={() => { handleDelete(editing.id); setShowForm(false); }}>删除</button></div>}
+              {editing && <div style={{ marginTop: 10 }}><button className="btn btn-block btn-danger" onClick={() => { handleDelete(editing.id); setShowForm(false); }}>{t('tx_delete')}</button></div>}
             </>)}
-            {!isAdmin && editing && <div style={{ marginTop: 20 }}><button className="btn btn-block btn-outline" onClick={() => setShowForm(false)}>关闭</button></div>}
+            {!isAdmin && editing && <div style={{ marginTop: 20 }}><button className="btn btn-block btn-outline" onClick={() => setShowForm(false)}>{t('mb_close')}</button></div>}
           </div>
         </div>
       )}

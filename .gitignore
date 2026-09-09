@@ -31,3 +31,5 @@ diagram_vector.jpg
 Captura*.png
 Captura*.png
 backup-*.json
+backups/
+supabase/.temp/
