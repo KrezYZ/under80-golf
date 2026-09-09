@@ -161,6 +161,8 @@ export const t: Record<Lang, Record<string, string>> = {
     mb_delete_confirm: '确定删除该会员？',
     mb_no_match: '没有匹配的会员',
     mb_no_members: '还没有会员',
+    mb_total: '共',
+    mb_people: '人',
 
     // Profile
     profile_title: '编辑个人资料',
@@ -339,6 +341,8 @@ export const t: Record<Lang, Record<string, string>> = {
     mb_delete_confirm: '¿Eliminar este socio?',
     mb_no_match: 'Sin coincidencias',
     mb_no_members: 'No hay socios',
+    mb_total: 'Total',
+    mb_people: 'socios',
 
     profile_title: 'Editar perfil',
     profile_name: 'Nombre',

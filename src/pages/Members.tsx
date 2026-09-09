@@ -28,6 +28,8 @@ export default function Members() {
 
   const active = isAdmin ? filtered.filter(m => m.status === 'active') : filtered;
   const inactive = isAdmin ? filtered.filter(m => m.status === 'inactive') : [];
+  const maleCount = isAdmin ? members.filter(m => m.genero?.toUpperCase() === 'M').length : null;
+  const femaleCount = isAdmin ? members.filter(m => m.genero?.toUpperCase() === 'F').length : null;
 
   useEffect(() => {
     if (showForm) { document.body.style.overflow = 'hidden'; }
@@ -76,7 +78,9 @@ export default function Members() {
     <div className="page">
       <div className="page-header">
         <h1 className="page-title">👥 {t("mb_title")}</h1>
-        <span style={{ color: '#888', fontSize: 13 }}>共 {members.length} 人</span>
+        <span style={{ color: '#888', fontSize: 13 }}>
+          {langCount(t, members.length)}{isAdmin ? ` · ${t('mb_male')} ${maleCount} · ${t('mb_female')} ${femaleCount}` : ''}
+        </span>
       </div>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
@@ -150,6 +154,10 @@ export default function Members() {
       )}
     </div>
   );
+}
+
+function langCount(t: (key: string) => string, count: number) {
+  return `${t('mb_total')} ${count} ${t('mb_people')}`;
 }
 
 // Admin card — shows all info

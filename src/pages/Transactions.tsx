@@ -29,11 +29,16 @@ export default function Transactions() {
   });
 
   const load = useCallback(async () => {
-    const [txs, evts] = await Promise.all([getTransactions(), getEvents()]);
+    const txs = await getTransactions();
     txs.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     setTransactions(txs);
-    setEvents(evts);
-  }, []);
+    try {
+      setEvents(await getEvents(isAdmin ? 'admin' : 'public'));
+    } catch (error) {
+      console.error('Unable to load tournament links:', error);
+      setEvents([]);
+    }
+  }, [isAdmin]);
 
   useEffect(() => { load(); }, [load]);
 

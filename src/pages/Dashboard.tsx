@@ -3,11 +3,12 @@ import {
   type Transaction,
   getTotalIncome, getTotalExpense, getBalance,
   getCurrentMonthTransactions, formatCurrency, getMonthLabel,
-  getTransactions, getMembers, getEvents,
+  getTransactions, getMembers, getMemberDirectory,
   EXPENSE_CATEGORIES,
 } from '../db';
 import { useT } from '../i18n/useT';
 import { exportToExcel } from '../utils/export';
+import { useAuth } from '../hooks/useAuth';
 
 interface MonthlyStats {
   label: string;
@@ -17,6 +18,7 @@ interface MonthlyStats {
 
 export default function Dashboard() {
   const { t } = useT();
+  const { isAdmin } = useAuth();
   const [balance, setBalance] = useState(0);
   const [cashBalance, setCashBalance] = useState(0);
   const [bankBalance, setBankBalance] = useState(0);
@@ -30,21 +32,8 @@ export default function Dashboard() {
   const [categoryBreakdown, setCategoryBreakdown] = useState<{ name: string; amount: number }[]>([]);
 
   const refresh = useCallback(async () => {
-    const [txs, allMembers, events] = await Promise.all([getTransactions(), getMembers(), getEvents()]);
-    // Active members: registered for events within last year, or status=active
-    const oneYearAgo = new Date();
-    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-    const recentEventEmails = new Set<string>();
-    events.forEach(ev => {
-      if (new Date(ev.date) >= oneYearAgo) {
-        try { JSON.parse(ev.attendees || '[]').forEach((e: string) => recentEventEmails.add(e.toLowerCase())); } catch {}
-      }
-    });
-    const count = allMembers.filter(m => {
-      if (m.status === 'active') return true;
-      if (m.email && recentEventEmails.has(m.email.toLowerCase())) return true;
-      return false;
-    }).length;
+    const txs = await getTransactions();
+    const allMembers = isAdmin ? await getMembers() : await getMemberDirectory();
 
     setBalance(getBalance(txs));
     setTotalIncome(getTotalIncome(txs));
@@ -55,7 +44,7 @@ export default function Dashboard() {
     const bankTxs = txs.filter(t => t.paymentMethod === 'banco');
     setCashBalance(getBalance(cashTxs));
     setBankBalance(getBalance(bankTxs));
-    setMemberCount(count);
+    setMemberCount(allMembers.length);
 
     const monthTxs = getCurrentMonthTransactions(txs);
     setMonthIncome(getTotalIncome(monthTxs));
@@ -86,7 +75,7 @@ export default function Dashboard() {
       amount: txs.filter(t => t.type === 'expense' && t.category === cat).reduce((s, t) => s + t.amount, 0),
     })).filter(c => c.amount > 0).sort((a, b) => b.amount - a.amount);
     setCategoryBreakdown(cats);
-  }, []);
+  }, [isAdmin]);
 
   useEffect(() => { refresh(); }, [refresh]);
 
