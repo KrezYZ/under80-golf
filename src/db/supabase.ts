@@ -33,6 +33,7 @@ export interface GolfEvent {
 
 export interface EventRegistration { id: string; event_id: string; user_id: string; member_id: string | null; status: 'registered' | 'cancelled'; registered_at: string; member?: Pick<Member, 'id'|'name'|'licencia'>; }
 export interface TeeAssignment { id: string; event_id: string; member_id: string; group_name: string; tee: string; tee_time: string; notes: string; member?: Pick<Member, 'id'|'name'|'licencia'>; }
+export interface LineupEntry extends TeeAssignment { member_name: string; licencia: string; is_my_group: boolean; }
 export interface EventResult { id: string; event_id: string; member_id: string; stableford: number; gross_score?: number | null; handicap_playing?: number | null; position?: number | null; source: 'manual'|'golf_directo'; notes: string; member?: Pick<Member, 'id'|'name'|'licencia'>; }
 export interface RankingRow { year: number; member_id: string; name: string; licencia: string; events_played: number; total_stableford: number; best_round: number; average_stableford: number; ranking: number; }
 export interface AppNotification { id: string; title: string; body: string; event_id?: string | null; read_at?: string | null; delivered_at?: string | null; created_at: string; }
@@ -132,6 +133,12 @@ export async function toggleEventRegistration(eventId: string): Promise<boolean>
 
 export async function getTeeAssignments(eventId: string): Promise<TeeAssignment[]> {
   const { data, error } = await supabase.from('tee_assignments').select('*').eq('event_id', eventId).order('tee_time');
+  if (error) throw error;
+  return data || [];
+}
+
+export async function getEventLineup(eventId: string): Promise<LineupEntry[]> {
+  const { data, error } = await supabase.rpc('get_event_lineup', { p_event_id: eventId });
   if (error) throw error;
   return data || [];
 }

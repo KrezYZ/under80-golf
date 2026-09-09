@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { autoBackup, getAnnualRanking, getEvents, getEventResults, getMemberDirectory, getMembers, getRegistrations, getTeeAssignments, saveEventResult, saveTeeAssignment, updateEvent, type EventResult, type GolfEvent, type Member, type RankingRow, type TeeAssignment } from '../db';
+import { autoBackup, getAnnualRanking, getEvents, getEventResults, getMemberDirectory, getMembers, getRegistrations, saveEventResult, updateEvent, type EventResult, type GolfEvent, type Member, type RankingRow } from '../db';
 import { useAuth } from '../hooks/useAuth';
 import { useT } from '../i18n/useT';
 
@@ -15,7 +15,6 @@ export default function Ranking() {
   const [eventId, setEventId] = useState('');
   const [participantIds, setParticipantIds] = useState<string[]>([]);
   const [results, setResults] = useState<Record<string, Partial<EventResult>>>({});
-  const [tees, setTees] = useState<Record<string, Partial<TeeAssignment>>>({});
   const [message, setMessage] = useState('');
 
   const loadRanking = useCallback(async () => setRanking(await getAnnualRanking(year)), [year]);
@@ -30,10 +29,9 @@ export default function Ranking() {
 
   useEffect(() => {
     if (!eventId) return;
-    Promise.all([getEventResults(eventId), getTeeAssignments(eventId), isAdmin ? getRegistrations(eventId) : Promise.resolve([])])
-      .then(([resultRows, teeRows, registrationRows]) => {
+    Promise.all([getEventResults(eventId), isAdmin ? getRegistrations(eventId) : Promise.resolve([])])
+      .then(([resultRows, registrationRows]) => {
         setResults(Object.fromEntries(resultRows.map(row => [row.member_id, row])));
-        setTees(Object.fromEntries(teeRows.map(row => [row.member_id, row])));
         setParticipantIds(registrationRows.map(row => row.member_id).filter(Boolean) as string[]);
       });
   }, [eventId, isAdmin]);
@@ -44,14 +42,12 @@ export default function Ranking() {
 
   const saveParticipant = async (memberId: string) => {
     if (!eventId) return;
-    const tee = tees[memberId] || {};
     const result = results[memberId] || {};
-    await saveTeeAssignment({ event_id: eventId, member_id: memberId, group_name: tee.group_name || '', tee: tee.tee || '', tee_time: tee.tee_time || '', notes: tee.notes || '' });
     if (result.stableford !== undefined && result.stableford !== null) {
       await saveEventResult({ event_id: eventId, member_id: memberId, stableford: Number(result.stableford), gross_score: result.gross_score ? Number(result.gross_score) : null, handicap_playing: result.handicap_playing ? Number(result.handicap_playing) : null, position: null, source: 'manual', notes: '' });
     }
     setMessage(t('ranking_saved'));
-    autoBackup('编辑 Tee 与比赛成绩');
+    autoBackup('编辑比赛成绩');
     await loadRanking();
   };
 
@@ -94,14 +90,10 @@ export default function Ranking() {
 
     {isAdmin && <div style={{ marginTop: 12 }}>
       {adminParticipants.map(member => {
-        const tee = tees[member.id] || {};
         const result = results[member.id] || {};
         return <div className="card" key={member.id}>
           <strong>{member.name}</strong><span style={{ color: '#888', marginLeft: 8, fontSize: 12 }}>{member.licencia}</span>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 10 }}>
-            <input className="input" placeholder={t('ranking_group')} value={tee.group_name || ''} onChange={e => setTees({ ...tees, [member.id]: { ...tee, group_name: e.target.value } })} />
-            <input className="input" placeholder="Tee" value={tee.tee || ''} onChange={e => setTees({ ...tees, [member.id]: { ...tee, tee: e.target.value } })} />
-            <input className="input" type="time" value={tee.tee_time || ''} onChange={e => setTees({ ...tees, [member.id]: { ...tee, tee_time: e.target.value } })} />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8, marginTop: 10 }}>
             <input className="input" inputMode="numeric" placeholder="Stableford" value={result.stableford ?? ''} onChange={e => setResults({ ...results, [member.id]: { ...result, member_id: member.id, event_id: eventId, stableford: e.target.value === '' ? undefined : Number(e.target.value) } })} />
           </div>
           <button className="btn btn-primary btn-sm" style={{ marginTop: 8 }} onClick={() => saveParticipant(member.id)}>{t('ranking_save')}</button>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { getEvents, addEvent, updateEvent, deleteEvent, getTransactions, getRegistrations, toggleEventRegistration, type EventRegistration, type GolfEvent, type Transaction, getTotalIncome, getTotalExpense, autoBackup, formatCurrency, formatDate } from '../db';
+import { getEvents, addEvent, updateEvent, deleteEvent, getTransactions, getRegistrations, getEventLineup, toggleEventRegistration, type EventRegistration, type GolfEvent, type LineupEntry, type Transaction, getTotalIncome, getTotalExpense, autoBackup, formatCurrency, formatDate } from '../db';
 import { useAuth } from '../hooks/useAuth';
 import { useT } from '../i18n/useT';
 
@@ -13,6 +13,7 @@ export default function Events() {
   const [events, setEvents] = useState<GolfEvent[]>([]);
   const [allTxs, setAllTxs] = useState<Transaction[]>([]);
   const [registrations, setRegistrations] = useState<Record<string, EventRegistration[]>>({});
+  const [lineups, setLineups] = useState<Record<string, LineupEntry[]>>({});
   const [expanded, setExpanded] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<GolfEvent | null>(null);
@@ -51,6 +52,19 @@ export default function Events() {
     if (!user?.email) return;
     await toggleEventRegistration(ev.id);
     load();
+  };
+
+  const toggleExpanded = async (ev: GolfEvent) => {
+    if (expanded === ev.id) { setExpanded(null); return; }
+    setExpanded(ev.id);
+    if ((isAdmin || ev.is_registered) && !lineups[ev.id]) {
+      try {
+        const rows = await getEventLineup(ev.id);
+        setLineups(current => ({ ...current, [ev.id]: rows }));
+      } catch (error) {
+        console.error('Unable to load event lineup:', error);
+      }
+    }
   };
 
   const openNew = () => {
@@ -103,7 +117,7 @@ export default function Events() {
 
           return (
             <div key={ev.id} className="card" style={{ padding: 0, margin: '0 8px 10px', overflow: 'hidden' }}>
-              <div onClick={() => setExpanded(isOpen ? null : ev.id)} style={{ padding: 14, cursor: 'pointer' }}>
+              <div onClick={() => toggleExpanded(ev)} style={{ padding: 14, cursor: 'pointer' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
                   <div>
                     <div style={{ fontWeight: 700, fontSize: 16 }}>{ev.name}</div>
@@ -159,6 +173,23 @@ export default function Events() {
                     <div style={{ padding: '10px 14px', borderBottom: '1px solid #e0e0e0' }}>
                       <div style={{ fontSize: 12, fontWeight: 700, color: '#1B5E20', marginBottom: 4 }}>👥 {t('ev_registered_count')} ({eventRegistrations.length})</div>
                       <div style={{ fontSize: 12, color: '#666' }}>{t('ev_ranking_hint')}</div>
+                    </div>
+                  )}
+                  {(isAdmin || ev.is_registered) && (lineups[ev.id]?.length || 0) > 0 && (
+                    <div style={{ padding: '10px 14px', borderBottom: '1px solid #e0e0e0' }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: '#1B5E20', marginBottom: 8 }}>⛳ {t('lineup_today')}</div>
+                      {lineups[ev.id].map(row => (
+                        <div key={row.id} style={{
+                          display: 'grid', gridTemplateColumns: '58px 1fr 54px', gap: 8,
+                          padding: '8px 6px', borderRadius: 8, marginBottom: 3,
+                          background: row.is_my_group ? '#E8F5E9' : 'transparent',
+                          fontWeight: row.is_my_group ? 800 : 400,
+                        }}>
+                          <span>{row.tee_time?.slice(0, 5) || '—'}</span>
+                          <span>{row.group_name ? `${row.group_name} · ` : ''}{row.member_name}</span>
+                          <span style={{ textAlign: 'right' }}>{row.tee ? `Tee ${row.tee}` : '—'}</span>
+                        </div>
+                      ))}
                     </div>
                   )}
                   {txs.length > 0 ? (

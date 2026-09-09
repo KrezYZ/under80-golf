@@ -31,6 +31,7 @@ export const t: Record<Lang, Record<string, string>> = {
     nav_events: '比赛',
     nav_members: '会员',
     nav_ranking: '排名',
+    nav_lineups: '排组',
     logout: '退出',
     admin: 'ADMIN',
 
@@ -122,6 +123,11 @@ export const t: Record<Lang, Record<string, string>> = {
     ranking_saved: '已保存',
     ranking_publish: '发布本场成绩并计入年度排名',
     ranking_published: '比赛成绩已发布',
+    lineup_manage: '开球排组管理',
+    lineup_admin_hint: '仅管理员可以在这里安排参赛会员的分组、Tee 和开球时间。',
+    lineup_no_players: '本场比赛暂时没有已报名会员',
+    lineup_group: '组别',
+    lineup_today: '比赛当天排组',
 
     notifications_title: '通知',
     notifications_push: '手机推送',
@@ -215,6 +221,7 @@ export const t: Record<Lang, Record<string, string>> = {
     nav_events: 'Torneos',
     nav_members: 'Socios',
     nav_ranking: 'Ranking',
+    nav_lineups: 'Salidas',
     logout: 'Salir',
     admin: 'ADMIN',
 
@@ -303,6 +310,11 @@ export const t: Record<Lang, Record<string, string>> = {
     ranking_saved: 'Guardado',
     ranking_publish: 'Publicar resultados y sumar al ranking anual',
     ranking_published: 'Resultados publicados',
+    lineup_manage: 'Gestión de salidas',
+    lineup_admin_hint: 'Solo los administradores pueden asignar grupos, Tee y horarios de salida.',
+    lineup_no_players: 'Todavía no hay inscritos en este torneo',
+    lineup_group: 'Grupo',
+    lineup_today: 'Orden de salida',
 
     notifications_title: 'Notificaciones',
     notifications_push: 'Notificaciones móviles',
