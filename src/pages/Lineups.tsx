@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import {
-  autoBackup, getEvents, getMembers, getRegistrations, getTeeAssignments,
-  saveTeeAssignment, saveTeeAssignments, type GolfEvent, type Member, type TeeAssignment,
+  autoBackup, getEventLineup, getEvents, getMembers, getRegistrations, getTeeAssignments,
+  replaceEventLineup, saveTeeAssignment, type GolfEvent, type LineupEntry, type Member, type TeeAssignment,
 } from '../db';
 import { useAuth } from '../hooks/useAuth';
 import { useT } from '../i18n/useT';
-import { parseLineupFile, type ImportedLineupRow, type MatchedLineupRow } from '../utils/lineupImport';
+import { parseLineupFile, type ImportedLineupRow, type ResolvedLineupRow } from '../utils/lineupImport';
 
 export default function Lineups() {
   const { isAdmin } = useAuth();
@@ -17,9 +17,10 @@ export default function Lineups() {
   const [participantIds, setParticipantIds] = useState<string[]>([]);
   const [assignments, setAssignments] = useState<Record<string, Partial<TeeAssignment>>>({});
   const [savedMemberId, setSavedMemberId] = useState('');
-  const [imported, setImported] = useState<MatchedLineupRow[]>([]);
+  const [imported, setImported] = useState<ResolvedLineupRow[]>([]);
   const [unmatched, setUnmatched] = useState<ImportedLineupRow[]>([]);
   const [importMessage, setImportMessage] = useState('');
+  const [completeLineup, setCompleteLineup] = useState<LineupEntry[]>([]);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -32,11 +33,12 @@ export default function Lineups() {
 
   const loadLineup = useCallback(async () => {
     if (!eventId || !isAdmin) return;
-    const [registrations, teeRows] = await Promise.all([
-      getRegistrations(eventId), getTeeAssignments(eventId),
+    const [registrations, teeRows, lineupRows] = await Promise.all([
+      getRegistrations(eventId), getTeeAssignments(eventId), getEventLineup(eventId),
     ]);
     setParticipantIds(registrations.map(row => row.member_id).filter(Boolean) as string[]);
-    setAssignments(Object.fromEntries(teeRows.map(row => [row.member_id, row])));
+    setAssignments(Object.fromEntries(teeRows.filter(row => row.member_id).map(row => [row.member_id as string, row])));
+    setCompleteLineup(lineupRows);
   }, [eventId, isAdmin]);
 
   useEffect(() => { void loadLineup(); }, [loadLineup]);
@@ -49,14 +51,14 @@ export default function Lineups() {
   const importFile = async (file?: File) => {
     if (!file) return;
     const result = await parseLineupFile(file, members);
-    setImported(result.matched); setUnmatched(result.unmatched);
+    setImported(result.all); setUnmatched(result.unmatched);
     setImportMessage(`${t('lineup_found')} ${result.total} · ${t('lineup_matched')} ${result.matched.length} · ${t('lineup_unmatched')} ${result.unmatched.length}`);
   };
 
   const confirmImport = async () => {
-    await saveTeeAssignments(imported.map(row => ({ event_id: eventId, member_id: row.member_id, group_name: row.group_name, tee: row.tee, tee_time: row.tee_time || null, notes: '' })));
+    const saved = await replaceEventLineup(eventId, imported.map((row, index) => ({ member_id: row.member_id, name: row.member_name, licencia: row.licencia, group_name: row.group_name, tee: row.tee, tee_time: row.tee_time, sort_order: index })));
     autoBackup('导入比赛开球排组');
-    setImportMessage(t('lineup_imported')); setImported([]); setUnmatched([]);
+    setImportMessage(`${t('lineup_imported')} (${saved})`); setImported([]); setUnmatched([]);
     await loadLineup();
   };
 
@@ -93,12 +95,13 @@ export default function Lineups() {
       </label>
       {importMessage && <div style={{ marginTop: 10, fontSize: 13, color: '#2E7D32' }}>{importMessage}</div>}
       {!!imported.length && <div style={{ marginTop: 10 }}>
-        {imported.slice(0, 8).map((row, index) => <div key={`${row.member_id}-${index}`} style={{ fontSize: 12, padding: '4px 0' }}>{row.tee_time || '—'} · {row.member_name} · {row.group_name || '—'} · Tee {row.tee || '—'}</div>)}
+        {imported.slice(0, 8).map((row, index) => <div key={`${row.member_id}-${index}`} style={{ fontSize: 12, padding: '4px 0' }}>{row.tee_time || '—'} · {row.member_name} {row.member_id ? '' : `(${t('lineup_guest')})`} · {row.group_name || '—'} · Tee {row.tee || '—'}</div>)}
         {imported.length > 8 && <div style={{ color: '#888', fontSize: 12 }}>+ {imported.length - 8}</div>}
         <button className="btn btn-primary btn-block" style={{ marginTop: 10 }} onClick={confirmImport}>{t('lineup_confirm_import')}</button>
       </div>}
-      {!!unmatched.length && <details style={{ marginTop: 8, fontSize: 12 }}><summary>{t('lineup_unmatched')} ({unmatched.length})</summary>{unmatched.map((row, index) => <div key={index}>{row.name || row.licencia} · {t('lineup_row')} {row.source_row}</div>)}</details>}
+      {!!unmatched.length && <details style={{ marginTop: 8, fontSize: 12 }}><summary>{t('lineup_guests_found')} ({unmatched.length})</summary>{unmatched.map((row, index) => <div key={index}>{row.name || row.licencia} · {t('lineup_row')} {row.source_row}</div>)}</details>}
     </div>
+    {!!completeLineup.length && <CompleteLineup rows={completeLineup} title={t('lineup_complete')} guestLabel={t('lineup_guest')} />}
     {!participants.length && <div className="empty-state">{t('lineup_no_players')}</div>}
     {participants.map(member => {
       const value = assignments[member.id] || {};
@@ -118,5 +121,25 @@ export default function Lineups() {
         </div>
       </div>;
     })}
+  </div>;
+}
+
+function CompleteLineup({ rows, title, guestLabel }: { rows: LineupEntry[]; title: string; guestLabel: string }) {
+  const groups = rows.reduce<Record<string, LineupEntry[]>>((result, row) => {
+    const key = `${row.tee_time || ''}|${row.group_name || ''}|${row.tee || ''}`;
+    (result[key] ||= []).push(row); return result;
+  }, {});
+  return <div style={{ marginTop: 18 }}>
+    <h2 style={{ fontSize: 18 }}>{title}</h2>
+    {Object.entries(groups).map(([key, players], index) => <div className="card" key={key} style={{ padding: 0, overflow: 'hidden' }}>
+      <div style={{ background: '#1B5E20', color: 'white', padding: '9px 12px', display: 'flex', justifyContent: 'space-between', fontWeight: 700 }}>
+        <span>{players[0].tee_time?.slice(0, 5) || '—'} · {players[0].group_name || `Grupo ${index + 1}`}</span>
+        <span>{players[0].tee ? `Tee ${players[0].tee}` : ''}</span>
+      </div>
+      {players.map(player => <div key={player.id} style={{ display: 'grid', gridTemplateColumns: '1fr 105px', gap: 8, padding: '9px 12px', borderBottom: '1px solid #eee' }}>
+        <strong>{player.member_name} {player.is_guest && <span style={{ color: '#999', fontWeight: 400 }}>({guestLabel})</span>}</strong>
+        <span style={{ color: '#777', textAlign: 'right' }}>{player.licencia || '—'}</span>
+      </div>)}
+    </div>)}
   </div>;
 }

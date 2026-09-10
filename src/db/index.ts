@@ -24,6 +24,7 @@ export const getTeeAssignments = supabase.getTeeAssignments;
 export const getEventLineup = supabase.getEventLineup;
 export const saveTeeAssignment = supabase.saveTeeAssignment;
 export const saveTeeAssignments = supabase.saveTeeAssignments;
+export const replaceEventLineup = supabase.replaceEventLineup;
 export const getEventResults = supabase.getEventResults;
 export const saveEventResult = supabase.saveEventResult;
 export const saveEventResults = supabase.saveEventResults;

@@ -14,6 +14,10 @@ export interface MatchedLineupRow extends ImportedLineupRow {
   member_id: string;
   member_name: string;
 }
+export interface ResolvedLineupRow extends ImportedLineupRow {
+  member_id: string | null;
+  member_name: string;
+}
 
 const normalize = (value: unknown) => String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z0-9]+/g, ' ').trim();
 const compact = (value: unknown) => normalize(value).replace(/\s+/g, '');
@@ -101,6 +105,7 @@ export async function parseLineupFile(file: File, members: Member[]) {
   const rows = parseRows(await file.arrayBuffer());
   const matched: MatchedLineupRow[] = [];
   const unmatched: ImportedLineupRow[] = [];
+  const all: ResolvedLineupRow[] = [];
   for (const row of rows) {
     const licenseMatches = row.licencia ? members.filter(member => compact(member.licencia) === compact(row.licencia)) : [];
     let member = licenseMatches.length === 1 ? licenseMatches[0] : undefined;
@@ -109,9 +114,14 @@ export async function parseLineupFile(file: File, members: Member[]) {
       const candidates = members.map(item => ({ item, score: nameScore(row.name, item) })).sort((a, b) => b.score - a.score);
       if (candidates[0]?.score >= 0.65) member = candidates[0].item;
     }
-    if (member) matched.push({ ...row, member_id: member.id, member_name: member.name });
-    else unmatched.push(row);
+    if (member) {
+      matched.push({ ...row, member_id: member.id, member_name: member.name });
+      all.push({ ...row, member_id: member.id, member_name: member.name });
+    } else {
+      unmatched.push(row);
+      all.push({ ...row, member_id: null, member_name: row.name || 'Invitado' });
+    }
   }
   const uniqueMatched = [...new Map(matched.map(row => [row.member_id, row])).values()];
-  return { matched: uniqueMatched, unmatched, total: rows.length };
+  return { matched: uniqueMatched, unmatched, all, total: rows.length };
 }

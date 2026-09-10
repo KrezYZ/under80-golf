@@ -34,8 +34,8 @@ export interface GolfEvent {
 }
 
 export interface EventRegistration { id: string; event_id: string; user_id: string; member_id: string | null; status: 'registered' | 'cancelled'; registered_at: string; member?: Pick<Member, 'id'|'name'|'licencia'>; }
-export interface TeeAssignment { id: string; event_id: string; member_id: string; group_name: string; tee: string; tee_time: string | null; notes: string; member?: Pick<Member, 'id'|'name'|'licencia'>; }
-export interface LineupEntry extends TeeAssignment { member_name: string; licencia: string; is_my_group: boolean; }
+export interface TeeAssignment { id: string; event_id: string; member_id: string | null; group_name: string; tee: string; tee_time: string | null; notes: string; guest_name?: string; licencia_snapshot?: string; sort_order?: number; member?: Pick<Member, 'id'|'name'|'licencia'>; }
+export interface LineupEntry extends TeeAssignment { member_name: string; licencia: string; is_my_group: boolean; is_guest: boolean; sort_order: number; }
 export interface EventResult { id: string; event_id: string; member_id: string; stableford: number; gross_score?: number | null; handicap_playing?: number | null; position?: number | null; source: 'manual'|'golf_directo'; notes: string; member?: Pick<Member, 'id'|'name'|'licencia'>; }
 export interface RankingRow { year: number; member_id: string; name: string; licencia: string; events_played: number; total_stableford: number; best_round: number; average_stableford: number; ranking: number; }
 export interface AppNotification { id: string; title: string; body: string; event_id?: string | null; read_at?: string | null; delivered_at?: string | null; created_at: string; }
@@ -171,6 +171,12 @@ export async function saveTeeAssignments(values: Omit<TeeAssignment, 'id'|'membe
   if (!values.length) return;
   const { error } = await supabase.from('tee_assignments').upsert(values, { onConflict: 'event_id,member_id' });
   if (error) throw error;
+}
+
+export async function replaceEventLineup(eventId: string, rows: { member_id: string | null; name: string; licencia: string; group_name: string; tee: string; tee_time: string; sort_order: number }[]): Promise<number> {
+  const { data, error } = await supabase.rpc('replace_event_lineup', { p_event_id: eventId, p_rows: rows });
+  if (error) throw error;
+  return Number(data || 0);
 }
 
 export async function getAnnualRanking(year: number): Promise<RankingRow[]> {
