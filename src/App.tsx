@@ -10,6 +10,7 @@ import Transactions from './pages/Transactions';
 import Ranking from './pages/Ranking';
 import Notifications from './pages/Notifications';
 import Lineups from './pages/Lineups';
+import Scores from './pages/Scores';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -40,6 +41,7 @@ function AppContent() {
           <Route path="/ranking" element={<Ranking />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/lineups" element={<Lineups />} />
+          <Route path="/scores" element={<Scores />} />
         </Routes>
       </Layout>
     </HashRouter>

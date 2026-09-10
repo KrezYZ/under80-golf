@@ -20,6 +20,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { path: '/transactions', label: t('nav_transactions'), icon: '📒' },
     { path: '/events', label: t('nav_events'), icon: '🏆' },
     { path: '/ranking', label: t('nav_ranking'), icon: '🏅' },
+    ...(isAdmin ? [{ path: '/scores', label: t('nav_scores'), icon: '✍️' }] : []),
     ...(isAdmin ? [{ path: '/lineups', label: t('nav_lineups'), icon: '⛳' }] : []),
     { path: '/members', label: t('nav_members'), icon: '👥' },
   ];

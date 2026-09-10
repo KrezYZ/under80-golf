@@ -10,12 +10,12 @@ export default function Members() {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Member | null>(null);
   const [form, setForm] = useState({
-    name: '', phone: '', email: '', licencia: '', genero: '', status: 'active' as 'active' | 'inactive', notes: '',
+    last_name: '', first_name: '', phone: '', email: '', licencia: '', genero: '', status: 'active' as 'active' | 'inactive', notes: '',
   });
 
   const load = useCallback(async () => {
     const all = isAdmin ? await getMembers() : await getMemberDirectory() as Member[];
-    setMembers(all.sort((a, b) => a.name.localeCompare(b.name, 'zh')));
+    setMembers(all.sort((a, b) => (a.last_name || a.name).localeCompare(b.last_name || b.name, 'zh')));
   }, [isAdmin]);
 
   useEffect(() => { load(); }, [load]);
@@ -40,7 +40,7 @@ export default function Members() {
   const openNew = () => {
     if (!isAdmin) return;
     setEditing(null);
-    setForm({ name: '', phone: '', email: '', licencia: '', genero: '', status: 'active', notes: '' });
+    setForm({ last_name: '', first_name: '', phone: '', email: '', licencia: '', genero: '', status: 'active', notes: '' });
     setShowForm(true);
   };
 
@@ -48,19 +48,20 @@ export default function Members() {
     setEditing(m);
     // Non-admin only sees public fields
     if (!isAdmin) {
-      setForm({ name: m.name, phone: '', email: '', licencia: m.licencia || '', genero: m.genero || '', status: 'active', notes: '' });
+      setForm({ last_name: m.last_name || m.name, first_name: m.first_name || '', phone: '', email: '', licencia: m.licencia || '', genero: m.genero || '', status: 'active', notes: '' });
     } else {
-      setForm({ name: m.name, phone: m.phone, email: m.email, licencia: m.licencia || '', genero: m.genero || '', status: m.status, notes: m.notes });
+      setForm({ last_name: m.last_name || m.name, first_name: m.first_name || '', phone: m.phone, email: m.email, licencia: m.licencia || '', genero: m.genero || '', status: m.status, notes: m.notes });
     }
     setShowForm(true);
   };
 
   const handleSave = async () => {
-    if (!isAdmin || !form.name.trim()) return;
+    if (!isAdmin || !form.last_name.trim() || !form.first_name.trim()) return;
+    const data = { ...form, last_name: form.last_name.trim(), first_name: form.first_name.trim(), name: `${form.last_name.trim()} ${form.first_name.trim()}` };
     if (editing) {
-      await updateMember(editing.id, { ...form, joinDate: editing.joinDate });
+      await updateMember(editing.id, { ...data, joinDate: editing.joinDate });
     } else {
-      await addMember({ ...form, joinDate: new Date().toISOString().slice(0, 10) });
+      await addMember({ ...data, joinDate: new Date().toISOString().slice(0, 10) });
     }
     setShowForm(false);
     load(); autoBackup('编辑/添加会员');
@@ -116,8 +117,12 @@ export default function Members() {
             </h2>
 
             <div className="form-group">
-              <label className="label">姓名</label>
-              <input className="input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="会员姓名" disabled={!isAdmin} />
+              <label className="label">{t('mb_last_name')}</label>
+              <input className="input" value={form.last_name} onChange={e => setForm({ ...form, last_name: e.target.value })} disabled={!isAdmin} />
+            </div>
+            <div className="form-group">
+              <label className="label">{t('mb_first_name')}</label>
+              <input className="input" value={form.first_name} onChange={e => setForm({ ...form, first_name: e.target.value })} disabled={!isAdmin} />
             </div>
 
             <div className="form-group">

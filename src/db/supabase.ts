@@ -5,6 +5,8 @@ import { supabase } from '../firebase/config';
 export interface Member {
   id: string;
   name: string;
+  last_name?: string;
+  first_name?: string;
   phone: string;
   email: string;
   licencia: string;
@@ -32,7 +34,7 @@ export interface GolfEvent {
 }
 
 export interface EventRegistration { id: string; event_id: string; user_id: string; member_id: string | null; status: 'registered' | 'cancelled'; registered_at: string; member?: Pick<Member, 'id'|'name'|'licencia'>; }
-export interface TeeAssignment { id: string; event_id: string; member_id: string; group_name: string; tee: string; tee_time: string; notes: string; member?: Pick<Member, 'id'|'name'|'licencia'>; }
+export interface TeeAssignment { id: string; event_id: string; member_id: string; group_name: string; tee: string; tee_time: string | null; notes: string; member?: Pick<Member, 'id'|'name'|'licencia'>; }
 export interface LineupEntry extends TeeAssignment { member_name: string; licencia: string; is_my_group: boolean; }
 export interface EventResult { id: string; event_id: string; member_id: string; stableford: number; gross_score?: number | null; handicap_playing?: number | null; position?: number | null; source: 'manual'|'golf_directo'; notes: string; member?: Pick<Member, 'id'|'name'|'licencia'>; }
 export interface RankingRow { year: number; member_id: string; name: string; licencia: string; events_played: number; total_stableford: number; best_round: number; average_stableford: number; ranking: number; }
@@ -58,7 +60,7 @@ export const EXPENSE_CATEGORIES = ['场地费', '奖品', '餐饮', '设备器�
 // ---- CRUD: Members ----
 
 export async function getMembers(): Promise<Member[]> {
-  const { data } = await supabase.from('members').select('*').order('name');
+  const { data } = await supabase.from('members').select('*').order('last_name').order('first_name');
   return data || [];
 }
 
@@ -156,6 +158,18 @@ export async function getEventResults(eventId: string): Promise<EventResult[]> {
 
 export async function saveEventResult(value: Omit<EventResult, 'id'|'member'>): Promise<void> {
   const { error } = await supabase.from('event_results').upsert(value, { onConflict: 'event_id,member_id' });
+  if (error) throw error;
+}
+
+export async function saveEventResults(values: Omit<EventResult, 'id'|'member'>[]): Promise<void> {
+  if (!values.length) return;
+  const { error } = await supabase.from('event_results').upsert(values, { onConflict: 'event_id,member_id' });
+  if (error) throw error;
+}
+
+export async function saveTeeAssignments(values: Omit<TeeAssignment, 'id'|'member'>[]): Promise<void> {
+  if (!values.length) return;
+  const { error } = await supabase.from('tee_assignments').upsert(values, { onConflict: 'event_id,member_id' });
   if (error) throw error;
 }
 
