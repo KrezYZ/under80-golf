@@ -31,7 +31,7 @@ export default function Scores() {
   }, [eventId, isAdmin]);
   useEffect(() => { void load(); }, [load]);
 
-  const participants = useMemo(() => members.filter(member => participantIds.includes(member.id)), [members, participantIds]);
+  const participants = useMemo(() => participantIds.length ? members.filter(member => participantIds.includes(member.id)) : members, [members, participantIds]);
   const selectedEvent = events.find(event => event.id === eventId);
   const setScore = (memberId: string, value: string) => {
     const current = results[memberId] || {};
@@ -79,7 +79,7 @@ export default function Scores() {
       <strong>{t('scores_edit_one')}</strong>
       <select className="select" style={{ marginTop: 10 }} value={editMemberId} onChange={event => setEditMemberId(event.target.value)}>
         <option value="">{t('scores_choose_member')}</option>
-        {participants.map(member => <option key={member.id} value={member.id}>{member.name}</option>)}
+        {members.map(member => <option key={member.id} value={member.id}>{member.name}</option>)}
       </select>
       {editMemberId && <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
         <input className="input" type="number" inputMode="numeric" min="0" max="100" value={results[editMemberId]?.stableford ?? ''} onChange={event => setScore(editMemberId, event.target.value)} />
