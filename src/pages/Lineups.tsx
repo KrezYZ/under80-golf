@@ -101,7 +101,15 @@ export default function Lineups() {
       </div>}
       {!!unmatched.length && <details style={{ marginTop: 8, fontSize: 12 }}><summary>{t('lineup_guests_found')} ({unmatched.length})</summary>{unmatched.map((row, index) => <div key={index}>{row.name || row.licencia} · {t('lineup_row')} {row.source_row}</div>)}</details>}
     </div>
-    {!!completeLineup.length && <CompleteLineup rows={completeLineup} title={t('lineup_complete')} guestLabel={t('lineup_guest')} />}
+    {!!completeLineup.length && <CompleteLineup
+      rows={completeLineup}
+      title={t('lineup_complete')}
+      guestLabel={t('lineup_guest')}
+      groupsLabel={t('lineup_groups_count')}
+      playersLabel={t('lineup_players_count')}
+      membersLabel={t('lineup_members_count')}
+      guestsLabel={t('lineup_guests_count')}
+    />}
     {!participants.length && <div className="empty-state">{t('lineup_no_players')}</div>}
     {participants.map(member => {
       const value = assignments[member.id] || {};
@@ -124,13 +132,28 @@ export default function Lineups() {
   </div>;
 }
 
-function CompleteLineup({ rows, title, guestLabel }: { rows: LineupEntry[]; title: string; guestLabel: string }) {
+function CompleteLineup({ rows, title, guestLabel, groupsLabel, playersLabel, membersLabel, guestsLabel }: {
+  rows: LineupEntry[];
+  title: string;
+  guestLabel: string;
+  groupsLabel: string;
+  playersLabel: string;
+  membersLabel: string;
+  guestsLabel: string;
+}) {
   const groups = rows.reduce<Record<string, LineupEntry[]>>((result, row) => {
     const key = `${row.tee_time || ''}|${row.group_name || ''}|${row.tee || ''}`;
     (result[key] ||= []).push(row); return result;
   }, {});
+  const guestCount = rows.filter(row => row.is_guest).length;
+  const memberCount = rows.length - guestCount;
   return <div style={{ marginTop: 18 }}>
-    <h2 style={{ fontSize: 18 }}>{title}</h2>
+    <div style={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: '5px 12px', marginBottom: 10 }}>
+      <h2 style={{ fontSize: 18, margin: 0 }}>{title}</h2>
+      <span style={{ color: '#666', fontSize: 13 }}>
+        {groupsLabel} {Object.keys(groups).length} · {playersLabel} {rows.length} · {membersLabel} {memberCount} · {guestsLabel} {guestCount}
+      </span>
+    </div>
     {Object.entries(groups).map(([key, players], index) => <div className="card" key={key} style={{ padding: 0, overflow: 'hidden' }}>
       <div style={{ background: '#1B5E20', color: 'white', padding: '9px 12px', display: 'flex', justifyContent: 'space-between', fontWeight: 700 }}>
         <span>{players[0].tee_time?.slice(0, 5) || '—'} · {players[0].group_name || `Grupo ${index + 1}`}</span>

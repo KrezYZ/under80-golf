@@ -32,8 +32,12 @@ export default function Dashboard() {
   const [categoryBreakdown, setCategoryBreakdown] = useState<{ name: string; amount: number }[]>([]);
 
   const refresh = useCallback(async () => {
-    const txs = await getTransactions();
-    const allMembers = isAdmin ? await getMembers() : await getMemberDirectory();
+    // These requests are independent; loading them together avoids making the
+    // dashboard wait for the accounts request before starting the member count.
+    const [txs, allMembers] = await Promise.all([
+      getTransactions(),
+      isAdmin ? getMembers() : getMemberDirectory(),
+    ]);
 
     setBalance(getBalance(txs));
     setTotalIncome(getTotalIncome(txs));
