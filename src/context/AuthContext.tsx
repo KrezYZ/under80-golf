@@ -7,6 +7,7 @@ export interface AuthContextType {
   user: User | null;
   loading: boolean;
   isAdmin: boolean;
+  passwordRecovery: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -17,6 +18,8 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  // Only a successfully verified recovery event may open the password form.
+  const [passwordRecovery, setPasswordRecovery] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -37,6 +40,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (_event === 'PASSWORD_RECOVERY') setPasswordRecovery(true);
+      if (_event === 'SIGNED_OUT') setPasswordRecovery(false);
       setUser(session?.user ?? null);
       setLoading(false);
     });
@@ -81,7 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAdmin, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, loading, isAdmin, passwordRecovery, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );

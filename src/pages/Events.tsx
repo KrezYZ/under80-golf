@@ -16,6 +16,7 @@ export default function Events() {
   const [lineups, setLineups] = useState<Record<string, LineupEntry[]>>({});
   const [expanded, setExpanded] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [filter, setFilter] = useState<'all' | 'upcoming' | 'history'>('all');
   const [editing, setEditing] = useState<GolfEvent | null>(null);
   const [form, setForm] = useState<{ name: string; date: string; time: string; meeting_time: string; registration_deadline: string; capacity: string; location: string; status: 'upcoming' | 'completed' | 'cancelled'; notes: string }>({
     name: '', date: '', time: '', meeting_time: '', registration_deadline: '', capacity: '', location: '', status: 'upcoming', notes: '',
@@ -26,8 +27,10 @@ export default function Events() {
     all.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     setEvents(all);
     setAllTxs(txs);
-    const registrationPairs = await Promise.all(all.map(async event => [event.id, await getRegistrations(event.id)] as const));
-    setRegistrations(Object.fromEntries(registrationPairs));
+    if (isAdmin) {
+      const registrationPairs = await Promise.all(all.map(async event => [event.id, await getRegistrations(event.id)] as const));
+      setRegistrations(Object.fromEntries(registrationPairs));
+    } else setRegistrations({});
   }, [isAdmin]);
 
   useEffect(() => { load(); }, [load]);
@@ -48,6 +51,11 @@ export default function Events() {
   }, [showForm]);
 
   const getEventTxs = (eventId: string) => allTxs.filter(t => t.eventId === eventId);
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const visibleEvents = events.filter(event => filter === 'all' || (filter === 'history'
+    ? event.date < today || event.status === 'completed'
+    : event.date >= today && event.status === 'upcoming'));
   const handleRegister = async (ev: GolfEvent) => {
     if (!user?.email) return;
     await toggleEventRegistration(ev.id);
@@ -103,10 +111,13 @@ export default function Events() {
         {isAdmin && <button className="btn btn-primary btn-sm" onClick={openNew}>{t('ev_new')}</button>}
       </div>
 
-      {events.length === 0 ? (
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '0 8px 14px' }}>
+        {(['all', 'upcoming', 'history'] as const).map(value => <button key={value} className={`btn btn-sm ${filter === value ? 'btn-primary' : 'btn-outline'}`} onClick={() => setFilter(value)}>{t(`ev_filter_${value}`)}</button>)}
+      </div>
+      {visibleEvents.length === 0 ? (
         <div className="empty-state"><div style={{ fontSize: 48 }}>⛳</div><div>{t('ev_no_events')}</div></div>
       ) : (
-        events.map(ev => {
+        visibleEvents.map(ev => {
           const txs = getEventTxs(ev.id);
           const income = getTotalIncome(txs);
           const expense = getTotalExpense(txs);

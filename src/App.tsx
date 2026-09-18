@@ -11,9 +11,10 @@ import Ranking from './pages/Ranking';
 import Notifications from './pages/Notifications';
 import Lineups from './pages/Lineups';
 import Scores from './pages/Scores';
+import ResetPassword from './components/ResetPassword';
 
 function AppContent() {
-  const { user, loading } = useAuth();
+  const { user, loading, passwordRecovery } = useAuth();
 
   if (loading) {
     return (
@@ -26,6 +27,7 @@ function AppContent() {
     );
   }
 
+  if (passwordRecovery) return <ResetPassword />;
   if (!user) {
     return <LoginScreen />;
   }
