@@ -20,12 +20,12 @@ export interface GolfEvent {
   id: string;
   name: string;
   date: string;
-  time: string;
+  time: string | null;
   location: string;
   status: 'upcoming' | 'completed' | 'cancelled';
   notes: string;
   attendees: string;
-  meeting_time?: string;
+  meeting_time?: string | null;
   registration_deadline?: string | null;
   capacity?: number | null;
   results_published?: boolean;

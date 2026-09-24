@@ -18,6 +18,8 @@ export default function Events() {
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'history'>('all');
   const [editing, setEditing] = useState<GolfEvent | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const [form, setForm] = useState<{ name: string; date: string; time: string; meeting_time: string; registration_deadline: string; capacity: string; location: string; status: 'upcoming' | 'completed' | 'cancelled'; notes: string }>({
     name: '', date: '', time: '', meeting_time: '', registration_deadline: '', capacity: '', location: '', status: 'upcoming', notes: '',
   });
@@ -77,23 +79,53 @@ export default function Events() {
 
   const openNew = () => {
     if (!isAdmin) return;
+    setSaveError('');
     setEditing(null);
     setForm({ name: '', date: new Date().toISOString().slice(0, 10), time: '', meeting_time: '', registration_deadline: '', capacity: '', location: '', status: 'upcoming', notes: '' });
     setShowForm(true);
   };
 
   const openEdit = (ev: GolfEvent) => {
+    setSaveError('');
     setEditing(ev);
     setForm({ name: ev.name, date: ev.date, time: ev.time || '', meeting_time: ev.meeting_time || '', registration_deadline: ev.registration_deadline?.slice(0,16) || '', capacity: ev.capacity?.toString() || '', location: ev.location, status: ev.status, notes: ev.notes });
     setShowForm(true);
   };
 
   const handleSave = async () => {
-    if (!isAdmin || !form.name.trim() || !form.date) return;
-    const data = { ...form, capacity: form.capacity ? Number(form.capacity) : null, registration_deadline: form.registration_deadline || null, attendees: editing?.attendees || '[]', results_published: editing?.results_published || false };
-    if (editing) { await updateEvent(editing.id, data); }
-    else { await addEvent(data); }
-    setShowForm(false); load(); autoBackup('编辑/添加比赛');
+    if (!isAdmin || saving) return;
+    if (!form.name.trim() || !form.date) {
+      setSaveError(t('ev_required_error'));
+      return;
+    }
+
+    setSaving(true);
+    setSaveError('');
+    try {
+      const data = {
+        name: form.name.trim(),
+        date: form.date,
+        time: form.time || null,
+        meeting_time: form.meeting_time || null,
+        registration_deadline: form.registration_deadline ? new Date(form.registration_deadline).toISOString() : null,
+        capacity: form.capacity ? Number(form.capacity) : null,
+        location: form.location.trim(),
+        status: form.status,
+        notes: form.notes.trim(),
+        attendees: editing?.attendees || '[]',
+        results_published: editing?.results_published || false,
+      };
+      if (editing) await updateEvent(editing.id, data);
+      else await addEvent(data);
+      await load();
+      await autoBackup('编辑/添加比赛');
+      setShowForm(false);
+    } catch (error) {
+      console.error('Unable to save event:', error);
+      setSaveError(t('ev_save_failed'));
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -239,9 +271,10 @@ export default function Events() {
             <div className="form-group"><label className="label">{t('ev_status')}</label><select className="select" value={form.status} onChange={e => setForm({ ...form, status: e.target.value as 'upcoming' })} disabled={!isAdmin}><option value="upcoming">{t('ev_upcoming')}</option><option value="completed">{t('ev_completed')}</option><option value="cancelled">{t('ev_cancelled')}</option></select></div>
             <div className="form-group"><label className="label">{t('ev_notes')}</label><input className="input" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} disabled={!isAdmin && !!editing} /></div>
             {isAdmin && (<>
+              {saveError && <div style={{ color: '#b91c1c', background: '#fef2f2', padding: '10px 12px', borderRadius: 8, marginTop: 8 }}>{saveError}</div>}
               <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
-                <button className="btn btn-block btn-outline" onClick={() => setShowForm(false)} style={{ flex: 1 }}>{t('tx_cancel')}</button>
-                <button className="btn btn-block btn-primary" onClick={handleSave} style={{ flex: 1 }}>{t('tx_save')}</button>
+                <button className="btn btn-block btn-outline" disabled={saving} onClick={() => setShowForm(false)} style={{ flex: 1 }}>{t('tx_cancel')}</button>
+                <button className="btn btn-block btn-primary" disabled={saving} onClick={handleSave} style={{ flex: 1 }}>{saving ? t('ev_saving') : t('tx_save')}</button>
               </div>
               {editing && <div style={{ marginTop: 10 }}><button className="btn btn-block btn-danger" onClick={() => { handleDelete(editing.id); setShowForm(false); }}>{t('tx_delete')}</button></div>}
             </>)}
