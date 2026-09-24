@@ -25,7 +25,7 @@ export default function Notifications() {
     const permission = await Notification.requestPermission();
     setStatus(permission);
     if (permission !== 'granted') { setMessage(t('notifications_allow')); return; }
-    const registration = await navigator.serviceWorker.register('/under80-golf/sw.js');
+    const registration = await navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`);
     const existing = await registration.pushManager.getSubscription();
     const subscription = existing || await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: decodeBase64Url(VAPID_PUBLIC_KEY) });
     await savePushSubscription(subscription);

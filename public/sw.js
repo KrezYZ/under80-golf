@@ -2,9 +2,9 @@ self.addEventListener('push', event => {
   const data = event.data ? event.data.json() : { title: 'Under 80 Golf', body: '你有一条新通知' };
   event.waitUntil(self.registration.showNotification(data.title, {
     body: data.body,
-    icon: '/under80-golf/logo.png',
-    badge: '/under80-golf/icon.svg',
-    data: { url: data.url || '/under80-golf/#/notifications' }
+    icon: new URL('logo.png', self.registration.scope).href,
+    badge: new URL('icon.svg', self.registration.scope).href,
+    data: { url: data.url || new URL('#/notifications', self.registration.scope).href }
   }));
 });
 self.addEventListener('notificationclick', event => {
