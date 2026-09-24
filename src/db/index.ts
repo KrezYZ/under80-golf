@@ -6,7 +6,7 @@ import * as localStore from './localStore';
 const store = isSupabaseConfigured() ? supabase : localStore;
 
 // Types
-export type { Member, GolfEvent, Transaction, EventRegistration, TeeAssignment, LineupEntry, EventResult, RankingRow, AppNotification } from './supabase';
+export type { Member, GolfEvent, Transaction, EventRegistration, TeeAssignment, LineupEntry, EventResult, RankingRow, MyEventResult, AppNotification } from './supabase';
 
 // CRUD
 export const getMembers = store.getMembers;
@@ -29,6 +29,7 @@ export const getEventResults = supabase.getEventResults;
 export const saveEventResult = supabase.saveEventResult;
 export const saveEventResults = supabase.saveEventResults;
 export const getAnnualRanking = supabase.getAnnualRanking;
+export const getMyEventResults = supabase.getMyEventResults;
 export const getNotifications = supabase.getNotifications;
 export const savePushSubscription = supabase.savePushSubscription;
 export const markNotificationRead = supabase.markNotificationRead;

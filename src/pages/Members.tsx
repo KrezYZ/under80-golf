@@ -10,7 +10,7 @@ export default function Members() {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Member | null>(null);
   const [form, setForm] = useState({
-    last_name: '', first_name: '', phone: '', email: '', licencia: '', genero: '', status: 'active' as 'active' | 'inactive', notes: '',
+    last_name: '', first_name: '', phone: '', email: '', licencia: '', genero: '', joinDate: '', status: 'active' as 'active' | 'inactive', notes: '',
   });
 
   const load = useCallback(async () => {
@@ -40,7 +40,7 @@ export default function Members() {
   const openNew = () => {
     if (!isAdmin) return;
     setEditing(null);
-    setForm({ last_name: '', first_name: '', phone: '', email: '', licencia: '', genero: '', status: 'active', notes: '' });
+    setForm({ last_name: '', first_name: '', phone: '', email: '', licencia: '', genero: '', joinDate: new Date().toISOString().slice(0, 10), status: 'active', notes: '' });
     setShowForm(true);
   };
 
@@ -48,20 +48,20 @@ export default function Members() {
     setEditing(m);
     // Non-admin only sees public fields
     if (!isAdmin) {
-      setForm({ last_name: m.last_name || m.name, first_name: m.first_name || '', phone: '', email: '', licencia: m.licencia || '', genero: m.genero || '', status: 'active', notes: '' });
+      setForm({ last_name: m.last_name || m.name, first_name: m.first_name || '', phone: '', email: '', licencia: m.licencia || '', genero: m.genero || '', joinDate: '', status: 'active', notes: '' });
     } else {
-      setForm({ last_name: m.last_name || m.name, first_name: m.first_name || '', phone: m.phone, email: m.email, licencia: m.licencia || '', genero: m.genero || '', status: m.status, notes: m.notes });
+      setForm({ last_name: m.last_name || m.name, first_name: m.first_name || '', phone: m.phone, email: m.email, licencia: m.licencia || '', genero: m.genero || '', joinDate: m.joinDate || '', status: m.status, notes: m.notes });
     }
     setShowForm(true);
   };
 
   const handleSave = async () => {
     if (!isAdmin || !form.last_name.trim() || !form.first_name.trim()) return;
-    const data = { ...form, last_name: form.last_name.trim(), first_name: form.first_name.trim(), name: `${form.last_name.trim()} ${form.first_name.trim()}` };
+    const data = { ...form, last_name: form.last_name.trim(), first_name: form.first_name.trim(), name: `${form.last_name.trim()} ${form.first_name.trim()}`, joinDate: form.joinDate || '' };
     if (editing) {
-      await updateMember(editing.id, { ...data, joinDate: editing.joinDate });
+      await updateMember(editing.id, data);
     } else {
-      await addMember({ ...data, joinDate: new Date().toISOString().slice(0, 10) });
+      await addMember(data);
     }
     setShowForm(false);
     load(); autoBackup('编辑/添加会员');
@@ -143,9 +143,9 @@ export default function Members() {
               <>
                 <div className="form-group"><label className="label">手机号码</label><input className="input" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="手机号" /></div>
                 <div className="form-group"><label className="label">邮箱</label><input className="input" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="email@example.com" /></div>
+                <div className="form-group"><label className="label">{t('mb_join_date')}</label><input className="input" type="date" value={form.joinDate} onChange={e => setForm({ ...form, joinDate: e.target.value })} /></div>
                 <div className="form-group"><label className="label">状态</label><select className="select" value={form.status} onChange={e => setForm({ ...form, status: e.target.value as 'active' })}><option value="active">活跃</option><option value="inactive">停用</option></select></div>
                 <div className="form-group"><label className="label">备注</label><input className="input" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="备注信息" /></div>
-                {editing && editing.joinDate && <div className="form-group"><label className="label">加入日期</label><input className="input" value={formatDate(editing.joinDate)} disabled /></div>}
                 <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
                   <button className="btn btn-block btn-outline" onClick={() => setShowForm(false)} style={{ flex: 1 }}>取消</button>
                   <button className="btn btn-block btn-primary" onClick={handleSave} style={{ flex: 1 }}>保存</button>
